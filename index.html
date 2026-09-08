@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Degree Speedrun Tracker</title>
+<style>
+  /* ============================================================
+     THEME — colors live here. Dark mode switches automatically.
+     ============================================================ */
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --ink: #1a2233;
+    --muted: #5b6577;
+    --line: #e3e8f0;
+    --accent: #2563eb;      /* cloud blue */
+    --accent-soft: #dbeafe;
+    --good: #16a34a;
+    --good-soft: #dcfce7;
+    --warn-soft: #fef9c3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1420;
+      --card: #171e2e;
+      --ink: #e8edf6;
+      --muted: #9aa6ba;
+      --line: #2a3348;
+      --accent: #60a5fa;
+      --accent-soft: #1e3a5f;
+      --good: #4ade80;
+      --good-soft: #143522;
+      --warn-soft: #3a3620;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 16px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 16px 16px 80px; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.5rem; margin: 8px 0 2px; }
+  h2 { font-size: 1.15rem; margin: 28px 0 10px; }
+  .muted { color: var(--muted); }
+  .small { font-size: .85rem; }
+
+  /* ---------- sticky progress header ---------- */
+  #topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 16px;
+  }
+  #topbar .inner { max-width: 860px; margin: 0 auto; }
+  #topbar .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #planSelect {
+    font: inherit; padding: 6px 8px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    max-width: 100%;
+  }
+  button {
+    font: inherit; font-size: .85rem; padding: 6px 10px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.danger:hover { border-color: #dc2626; color: #dc2626; }
+  #progressText { margin-left: auto; font-size: .9rem; white-space: nowrap; }
+  #bar { height: 8px; border-radius: 99px; background: var(--line); margin-top: 8px; overflow: hidden; }
+  #barFill { height: 100%; width: 0%; background: var(--accent); border-radius: 99px; transition: width .3s; }
+
+  /* ---------- phase cards ---------- */
+  .phase {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px 18px; margin: 14px 0;
+  }
+  .phase > h3 { margin: 0 0 2px; font-size: 1.05rem; }
+  .phase .blurb { margin: 2px 0 10px; }
+  .phase .count {
+    float: right; font-size: .8rem; color: var(--muted);
+    background: var(--bg); border: 1px solid var(--line);
+    padding: 2px 8px; border-radius: 99px;
+  }
+  .course {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 8px 6px; border-top: 1px solid var(--line);
+  }
+  .course input[type=checkbox] { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--good); flex: none; }
+  .course.done .name { text-decoration: line-through; color: var(--muted); }
+  .course .name { font-weight: 600; }
+  .course .cu {
+    flex: none; margin-left: auto; font-size: .78rem; color: var(--muted);
+    background: var(--bg); border: 1px solid var(--line);
+    padding: 1px 7px; border-radius: 99px; white-space: nowrap; margin-top: 3px;
+  }
+  .course .del { flex: none; border: none; background: none; color: var(--muted); font-size: 1rem; padding: 0 4px; }
+  .course .del:hover { color: #dc2626; }
+
+  /* ---------- custom-plan add-course form ---------- */
+  .addForm { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .addForm input {
+    font: inherit; font-size: .85rem; padding: 6px 8px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .addForm input.wide { flex: 1 1 180px; }
+  .addForm input.tiny { width: 64px; }
+
+  /* ---------- guide boxes ---------- */
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin: 12px 0; }
+  .box.accent { border-left: 4px solid var(--accent); }
+  .box ul { margin: 8px 0; padding-left: 20px; }
+  .box li { margin: 5px 0; }
+</style>
+</head>
+<body>
+
+<!-- Sticky bar: plan switcher + overall progress. -->
+<div id="topbar">
+  <div class="inner">
+    <div class="row">
+      <select id="planSelect" title="Switch plan"></select>
+      <button id="newPlanBtn" title="Track a different school/degree">＋ New plan</button>
+      <button id="renamePlanBtn" hidden>Rename</button>
+      <button id="deletePlanBtn" class="danger" hidden>Delete plan</button>
+      <span id="progressText"></span>
+    </div>
+    <div id="bar"><div id="barFill"></div></div>
+  </div>
+</div>
+
+<main>
+  <h1 id="pageTitle"></h1>
+  <p class="muted" id="pageSub"></p>
+
+  <!-- The route (phases + courses) renders here from the PLAN data below. -->
+  <div id="phases"></div>
+  <p><button id="addPhaseBtn" hidden>＋ Add phase</button></p>
+
+  <!-- Guide sections (only shown for the built-in WGU plan). -->
+  <div id="guide"></div>
+
+  <p class="small muted">
+    Progress is saved automatically in this browser (localStorage) — nothing leaves your device.
+    <button id="resetBtn" class="danger">Reset this plan's progress</button>
+  </p>
+</main>
+
+<script>
+/* ==============================================================
+   1. DATA — the built-in speedrun plan(s). Edit courses here.
+   Each course: id (unique), name, maps (what it clears), cu, tip.
+   ============================================================== */
+const BUILT_IN_PLANS = [
+{
+  id: "wgu-bscne",
+  school: "WGU",
+  degree: "BS Cloud & Network Engineering",
+  note: "The degree that replaced BS Cloud Computing (renamed 2026). General track · 34 courses · 109 CUs · ~$4,125 per 6-month term, as many courses as you can pass.",
+  phases: [
+    {
+      title: "Phase 0 — Set up the run",
+      blurb: "Do this before spending a dollar. WGU narrowed Sophia transfers in March 2026 (gen-ed / lower-division only now), so verify every mapping first.",
+      items: [
+        { id: "s-pathway", name: "Pull the official BSCNE transfer pathway", maps: "wgu.edu/admissions/transfers + partners.wgu.edu", cu: 0, tip: "Confirm exactly which Sophia courses still articulate before buying a membership." },
+        { id: "s-counselor", name: "Talk to a WGU enrollment counselor", maps: "confirm admission + transfer evaluation", cu: 0, tip: "Admission needs HS diploma plus one of: 2.75+ HS GPA, college credit w/ 2.25+ GPA, an IT cert, or a prior degree." },
+        { id: "s-track", name: "Pick your track", maps: "General / AWS / Azure / Cisco", cu: 0, tip: "This tracker follows the General track. AWS/Azure swap in vendor cert courses." },
+        { id: "s-funding", name: "Line up funding (TA / FAFSA)", maps: "see 'Paying for it' below", cu: 0, tip: "If your employer or the military offers Tuition Assistance, start that paperwork now — it takes weeks." }
+      ]
+    },
+    {
+      title: "Phase 1 — Sophia.org (before you enroll)",
+      blurb: "$99/month, self-paced, open-book. Grind these before your WGU start date — each one is a WGU course you never have to take. A motivated month or two can clear all of them. ⚠ = mapping likely but unconfirmed post-2026 — verify before buying.",
+      items: [
+        { id: "so-it",    name: "Introduction to Information Technology", maps: "Introduction to IT", cu: 3, tip: "Easy first win — most people finish in days." },
+        { id: "so-eng",   name: "English Composition I", maps: "Composition: Successful Self-Expression", cu: 3 },
+        { id: "so-stats", name: "Introduction to Statistics", maps: "Applied Probability and Statistics", cu: 3 },
+        { id: "so-alg",   name: "College Algebra", maps: "Applied Algebra", cu: 3 },
+        { id: "so-sci",   name: "Environmental Science (or Human Bio / Chemistry)", maps: "Integrated Physical Sciences", cu: 3 },
+        { id: "so-db",    name: "Introduction to Relational Databases", maps: "Data Management – Foundations", cu: 3 },
+        { id: "so-mgmt",  name: "Principles of Management", maps: "IT Leadership Foundations", cu: 3 },
+        { id: "so-hist",  name: "US History I ⚠", maps: "US History: Stories of American Democracy", cu: 3, tip: "Verify this one with WGU before taking it." },
+        { id: "so-py",    name: "Introduction to Python Programming ⚠", maps: "Foundations of Programming (Python)", cu: 3, tip: "Articulated to WGU's old Python course — confirm it maps to the BSCNE version." }
+      ]
+    },
+    {
+      title: "Phase 2 — WGU term 1: quick wins",
+      blurb: "Enroll, then front-load the easy gen-eds and short courses to hit On-Time Progress (12 CUs) fast — after that your mentor can keep adding courses to the same flat-rate term.",
+      items: [
+        { id: "w-vc",   name: "Version Control", cu: 1, tip: "1 CU — many finish it in a weekend." },
+        { id: "w-eth",  name: "Ethics in Technology", cu: 3 },
+        { id: "w-tc",   name: "Technical Communication", cu: 3 },
+        { id: "w-hfw",  name: "Health, Fitness, and Wellness", cu: 4 },
+        { id: "w-sys",  name: "Introduction to Systems Thinking and Applications", cu: 3 },
+        { id: "w-vis",  name: "Influential Communication through Visual Design and Storytelling", cu: 3 },
+        { id: "w-itil", name: "Business of IT – Applications", maps: "ITIL 4 Foundation cert", cu: 4 }
+      ]
+    },
+    {
+      title: "Phase 3 — Cert courses (voucher included)",
+      blurb: "These courses ARE the cert exams — pass the cert, pass the course, and WGU pays for the voucher. Six resume-ready certs on the way to the degree.",
+      items: [
+        { id: "w-aplus1", name: "IT Foundations", maps: "CompTIA A+ Core 1", cu: 4 },
+        { id: "w-aplus2", name: "IT Applications", maps: "CompTIA A+ Core 2", cu: 4 },
+        { id: "w-linux",  name: "Linux Foundations", maps: "LPI Linux Essentials", cu: 3 },
+        { id: "w-net",    name: "Networks", maps: "CompTIA Network+", cu: 4 },
+        { id: "w-sec",    name: "Network and Security – Applications", maps: "CompTIA Security+", cu: 4 },
+        { id: "w-cloud",  name: "Cloud Applications", maps: "CompTIA Cloud+", cu: 3 }
+      ]
+    },
+    {
+      title: "Phase 4 — Cloud & network core",
+      blurb: "The meat of the degree — upper-division work that must be done at WGU. Keep the mentor-approved acceleration going.",
+      items: [
+        { id: "w-nsf",  name: "Network and Security – Foundations", cu: 3 },
+        { id: "w-nat",  name: "Network Analytics and Troubleshooting", cu: 3 },
+        { id: "w-tele", name: "Telecomm and Wireless Communications", cu: 3 },
+        { id: "w-pyit", name: "Python for IT Automation", cu: 3 },
+        { id: "w-sdn",  name: "Software Defined Networking", cu: 3 },
+        { id: "w-nad",  name: "Network Automation and Deployment", cu: 3 },
+        { id: "w-cnsm", name: "Cloud and Network Security Models", cu: 4 },
+        { id: "w-ai",   name: "AI for IT Automation and Security", cu: 3 },
+        { id: "w-virt", name: "Virtualization and IaaS", cu: 3 },
+        { id: "w-iot",  name: "Internet of Things (IoT) and Infrastructure", cu: 3 },
+        { id: "w-hyb",  name: "Hybrid Cloud Infrastructure and Orchestration", cu: 4 }
+      ]
+    },
+    {
+      title: "Phase 5 — Finish line",
+      blurb: "",
+      items: [
+        { id: "w-cap", name: "BSCNE Capstone Project", cu: 4, tip: "Done. Walk at commencement, update the resume." }
+      ]
+    }
+  ],
+  guideHtml: `
+    <h2>How the speedrun works</h2>
+    <div class="box accent">
+      <ul>
+        <li><b>1. Clear cheap credits first.</b> Sophia is $99/month and self-paced — every gen-ed you finish there is a WGU course you skip. Finish <i>everything</i> at Sophia <b>before your WGU start date</b>; outside credit generally can't be added after you start.</li>
+        <li><b>2. Enroll at WGU.</b> Tuition is flat per 6-month term (~$3,925 + $200 fees) no matter how many courses you pass — the whole speedrun is "pass more courses per term, pay for fewer terms."</li>
+        <li><b>3. Accelerate.</b> Hit On-Time Progress (12 CUs) early in the term, then ask your program mentor to add courses one at a time. Cert courses are cleared by passing the cert exam itself.</li>
+        <li><b>4. Realistic pace:</b> heavy accelerators finish in 1–2 terms after a strong Sophia phase; a relaxed-but-efficient run is 3–4 terms. Every term saved is ~$4,125 saved.</li>
+      </ul>
+    </div>
+
+    <h2>Paying for it — the TA route</h2>
+    <div class="box">
+      <ul>
+        <li><b>Employer / military Tuition Assistance:</b> WGU accepts TA, and the flat-rate term pairs perfectly with it — TA covers a fixed amount per term while you cram in unlimited courses. Ask HR (or your education office) for their approved-school list and start the approval paperwork before enrolling.</li>
+        <li><b>Sophia usually isn't TA-eligible</b> — but at $99–$299 total it's the cheapest part of the run anyway.</li>
+        <li><b>Backup:</b> FAFSA (Pell Grant if eligible) and WGU's own scholarships (wgu.edu/financial-aid) stack with an accelerated plan nicely.</li>
+      </ul>
+    </div>
+
+    <h2>Heads-up (2026 changes)</h2>
+    <div class="box" style="background: var(--warn-soft)">
+      <ul>
+        <li>WGU <b>renamed BS Cloud Computing to BS Cloud &amp; Network Engineering</b> and split it into General / AWS / Azure / Cisco tracks. This tracker follows the verified General-track course list (catalog 202608).</li>
+        <li>In <b>March 2026 WGU narrowed Sophia articulation</b>: gen-ed and lower-division courses still transfer, but upper-division courses must now be done at WGU. Older Reddit/YouTube "transfer 60+ credits" guides are out of date.</li>
+        <li>Course mappings change constantly — <b>confirm each Sophia course against WGU's official transfer pathway before paying</b>. This page is a planning tool, not an official source.</li>
+      </ul>
+    </div>`
+}
+];
+
+/* ==============================================================
+   2. STATE — everything the site remembers, in localStorage.
+   ============================================================== */
+const KEY = "degree-speedrun-v1";
+let state = { selectedPlanId: null, progress: {}, customPlans: [] };
+try { Object.assign(state, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+function allPlans() { return BUILT_IN_PLANS.concat(state.customPlans); }
+function currentPlan() {
+  return allPlans().find(p => p.id === state.selectedPlanId) || allPlans()[0];
+}
+function doneSet(plan) { return new Set(state.progress[plan.id] || []); }
+function isCustom(plan) { return state.customPlans.includes(plan); }
+
+/* ==============================================================
+   3. RENDER
+   ============================================================== */
+const $ = id => document.getElementById(id);
+
+function render() {
+  const plan = currentPlan();
+  state.selectedPlanId = plan.id;
+
+  // plan dropdown
+  $("planSelect").innerHTML = allPlans().map(p =>
+    `<option value="${p.id}" ${p.id === plan.id ? "selected" : ""}>${esc(p.school)} — ${esc(p.degree)}</option>`
+  ).join("");
+
+  $("pageTitle").textContent = plan.school + " · " + plan.degree + " Speedrun";
+  $("pageSub").textContent = plan.note || "";
+  $("renamePlanBtn").hidden = $("deletePlanBtn").hidden = $("addPhaseBtn").hidden = !isCustom(plan);
+
+  // phases + courses
+  const done = doneSet(plan);
+  $("phases").innerHTML = plan.phases.map((ph, pi) => {
+    const doneCount = ph.items.filter(c => done.has(c.id)).length;
+    return `<section class="phase">
+      <span class="count">${doneCount}/${ph.items.length} done</span>
+      <h3>${esc(ph.title)}</h3>
+      ${ph.blurb ? `<p class="blurb muted small">${ph.blurb}</p>` : ""}
+      ${ph.items.map(c => `
+        <label class="course ${done.has(c.id) ? "done" : ""}">
+          <input type="checkbox" data-course="${c.id}" ${done.has(c.id) ? "checked" : ""}>
+          <span>
+            <span class="name">${esc(c.name)}</span>
+            ${c.maps ? `<span class="muted small"> → ${esc(c.maps)}</span>` : ""}
+            ${c.tip ? `<br><span class="muted small">${esc(c.tip)}</span>` : ""}
+          </span>
+          <span class="cu">${c.cu} CU</span>
+          ${isCustom(plan) ? `<button class="del" data-del="${c.id}" title="Remove course">✕</button>` : ""}
+        </label>`).join("")}
+      ${isCustom(plan) ? addFormHtml(pi) : ""}
+    </section>`;
+  }).join("");
+
+  // progress bar (weighted by CUs)
+  const all = plan.phases.flatMap(p => p.items);
+  const totalCu = all.reduce((s, c) => s + (+c.cu || 0), 0);
+  const doneCu = all.filter(c => done.has(c.id)).reduce((s, c) => s + (+c.cu || 0), 0);
+  const pct = totalCu ? Math.round(100 * doneCu / totalCu) : 0;
+  $("barFill").style.width = pct + "%";
+  $("progressText").textContent = `${doneCu} / ${totalCu} CU · ${pct}%`;
+
+  $("guide").innerHTML = plan.guideHtml || "";
+  save();
+}
+
+function addFormHtml(pi) {
+  return `<form class="addForm" data-phase="${pi}">
+    <input class="wide" name="name" placeholder="Course name" required>
+    <input class="wide" name="maps" placeholder="Clears / maps to (optional)">
+    <input class="tiny" name="cu" type="number" min="0" step="1" placeholder="CU" value="3">
+    <button>Add course</button>
+  </form>`;
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ==============================================================
+   4. EVENTS
+   ============================================================== */
+$("planSelect").onchange = e => { state.selectedPlanId = e.target.value; render(); };
+
+// check / uncheck a course
+$("phases").addEventListener("change", e => {
+  const id = e.target.dataset.course;
+  if (!id) return;
+  const plan = currentPlan(), done = doneSet(plan);
+  e.target.checked ? done.add(id) : done.delete(id);
+  state.progress[plan.id] = [...done];
+  render();
+});
+
+// custom plans: delete a course / add a course
+$("phases").addEventListener("click", e => {
+  const id = e.target.dataset.del;
+  if (!id) return;
+  e.preventDefault();
+  const plan = currentPlan();
+  plan.phases.forEach(ph => ph.items = ph.items.filter(c => c.id !== id));
+  render();
+});
+$("phases").addEventListener("submit", e => {
+  e.preventDefault();
+  const f = e.target, plan = currentPlan();
+  const name = f.name.value.trim();
+  if (!name) return;
+  plan.phases[+f.dataset.phase].items.push({
+    id: "c" + Date.now(), name, maps: f.maps.value.trim(), cu: +f.cu.value || 0
+  });
+  render();
+});
+
+$("newPlanBtn").onclick = () => {
+  const school = prompt("School name? (e.g. WGU, SNHU, UMPI)");
+  if (!school) return;
+  const degree = prompt("Degree name? (e.g. BS Software Engineering)");
+  if (!degree) return;
+  const plan = {
+    id: "p" + Date.now(), school, degree,
+    note: "Custom plan — add phases and courses below.",
+    phases: [{ title: "Courses", blurb: "", items: [] }]
+  };
+  state.customPlans.push(plan);
+  state.selectedPlanId = plan.id;
+  render();
+};
+
+$("addPhaseBtn").onclick = () => {
+  const title = prompt("Phase title? (e.g. Phase 1 — Sophia)");
+  if (!title) return;
+  currentPlan().phases.push({ title, blurb: "", items: [] });
+  render();
+};
+
+$("renamePlanBtn").onclick = () => {
+  const plan = currentPlan();
+  plan.school = prompt("School:", plan.school) || plan.school;
+  plan.degree = prompt("Degree:", plan.degree) || plan.degree;
+  render();
+};
+
+$("deletePlanBtn").onclick = () => {
+  const plan = currentPlan();
+  if (!confirm(`Delete "${plan.school} — ${plan.degree}" and its progress?`)) return;
+  state.customPlans = state.customPlans.filter(p => p !== plan);
+  delete state.progress[plan.id];
+  state.selectedPlanId = null;
+  render();
+};
+
+$("resetBtn").onclick = () => {
+  const plan = currentPlan();
+  if (!confirm("Uncheck everything in this plan?")) return;
+  delete state.progress[plan.id];
+  render();
+};
+
+render();
+</script>
+</body>
+</html>
