@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Degree Speedrun Tracker</title>
+<meta name="description" content="Speedrun route and progress tracker for WGU's BS Cloud & Network Engineering — cheapest credits first via Sophia, then accelerate at WGU.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
 <style>
   /* ============================================================
      THEME — colors live here. Dark mode switches automatically.
@@ -91,6 +93,7 @@
     padding: 8px 6px; border-top: 1px solid var(--line);
   }
   .course input[type=checkbox] { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--good); flex: none; }
+  .course.done { background: var(--good-soft); border-radius: 8px; }
   .course.done .name { text-decoration: line-through; color: var(--muted); }
   .course .name { font-weight: 600; }
   .course .cu {
@@ -146,6 +149,8 @@
 
   <p class="small muted">
     Progress is saved automatically in this browser (localStorage) — nothing leaves your device.
+    To move progress to another device: <button id="exportBtn">Copy backup</button>
+    <button id="importBtn">Restore backup</button>
     <button id="resetBtn" class="danger">Reset this plan's progress</button>
   </p>
 </main>
@@ -248,12 +253,13 @@ const BUILT_IN_PLANS = [
       </ul>
     </div>
 
-    <h2>Paying for it — the TA route</h2>
+    <h2>Paying for it — the TA route (military Tuition Assistance)</h2>
     <div class="box">
       <ul>
-        <li><b>Employer / military Tuition Assistance:</b> WGU accepts TA, and the flat-rate term pairs perfectly with it — TA covers a fixed amount per term while you cram in unlimited courses. Ask HR (or your education office) for their approved-school list and start the approval paperwork before enrolling.</li>
-        <li><b>Sophia usually isn't TA-eligible</b> — but at $99–$299 total it's the cheapest part of the run anyway.</li>
-        <li><b>Backup:</b> FAFSA (Pell Grant if eligible) and WGU's own scholarships (wgu.edu/financial-aid) stack with an accelerated plan nicely.</li>
+        <li><b>WGU takes DoD TA.</b> TA must be approved <i>before</i> the term starts, and approval takes weeks — start at your base education office and your branch's portal (Navy: MyNavy Education / Navy College; Army: ArmyIgnitED; AF/SF: AFVEC) well ahead of your WGU start date.</li>
+        <li><b>Mind the caps.</b> TA has per-credit-hour and per-fiscal-year dollar caps that change with policy — ask the education office for the current numbers and how they handle WGU's flat-rate term. If a fast run would blow past the yearly cap, time your two terms to straddle the fiscal year (Oct 1) so each term draws from a different year's TA.</li>
+        <li><b>Sophia isn't TA-covered</b> — but it's $99–$299 total, the cheapest part of the whole run, and you can grind it while the TA paperwork processes.</li>
+        <li><b>Save the GI Bill.</b> If TA can carry this degree while you're in, your GI Bill stays intact for a master's or certs after you get out. FAFSA/Pell and WGU scholarships (wgu.edu/financial-aid) can cover any gap TA doesn't.</li>
       </ul>
     </div>
 
@@ -275,6 +281,15 @@ const KEY = "degree-speedrun-v1";
 let state = { selectedPlanId: null, progress: {}, customPlans: [] };
 try { Object.assign(state, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
 function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+// One-time seed: Sophia courses finished before this tracker existed.
+// Runs once per browser (the "seeded1" flag), then normal saving takes over.
+if (!state.seeded1) {
+  state.seeded1 = true;
+  const p = new Set(state.progress["wgu-bscne"] || []);
+  ["so-eng", "so-stats", "so-it"].forEach(id => p.add(id));
+  state.progress["wgu-bscne"] = [...p];
+}
 
 function allPlans() { return BUILT_IN_PLANS.concat(state.customPlans); }
 function currentPlan() {
@@ -421,6 +436,19 @@ $("deletePlanBtn").onclick = () => {
   delete state.progress[plan.id];
   state.selectedPlanId = null;
   render();
+};
+
+// Backup / restore — lets progress move between devices via copy-paste.
+$("exportBtn").onclick = async () => {
+  const text = JSON.stringify(state);
+  try { await navigator.clipboard.writeText(text); alert("Backup copied to clipboard — paste it into 'Restore backup' on the other device."); }
+  catch (e) { prompt("Copy this backup text:", text); }
+};
+$("importBtn").onclick = () => {
+  const text = prompt("Paste a backup here (this replaces current progress):");
+  if (!text) return;
+  try { state = JSON.parse(text); render(); }
+  catch (e) { alert("That didn't look like a valid backup."); }
 };
 
 $("resetBtn").onclick = () => {
