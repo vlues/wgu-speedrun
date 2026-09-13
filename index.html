@@ -246,7 +246,9 @@ const BUILT_IN_PLANS = [
         { id: "m-wgu", name: "Apply: WGU scholarship portal (90 days before start)", maps: "$3,000–$10,000 · stacks with TA", cu: 0, tip: "wgu.edu/scholarshipapplication. Active Duty award ($750/term) is the sure bet; compare tech and need-based awards — you get one WGU award, so pick the biggest you qualify for." },
         { id: "m-tillman", name: "Apply: Pat Tillman — opens ~Dec", maps: "~$10,000 · stacks with TA", cu: 0, tip: "pattillmanfoundation.org. Confirm WGU counts as full-time when the cycle opens." },
         { id: "m-spring", name: "Apply: AMVETS + AFCEA — spring 2027", maps: "$4,000 + $2,500 · stack with TA", cu: 0, tip: "AMVETS wants a command letter — that's a reference letter, not permission. AFCEA covers online STEM degrees." },
-        { id: "m-ccme", name: "Apply: CCME — cycle opens late 2026", maps: "$1,000 · stacks with TA", cu: 0, tip: "ccmeonline.org — confirm WGU is a member school before writing anything." },
+        { id: "m-ccme", name: "Apply: CCME — cycle opens late 2026", maps: "$1,000 · stacks with TA", cu: 0, tip: "ccmeonline.org — confirm WGU is a member school before writing anything. The 2026 cycle is closed and 2027 dates aren't posted yet, so check back each month." },
+        { id: "m-fra", name: "Apply: FRA Education Foundation — by Apr 15", maps: "up to $5,000 · stacks with TA", cu: 0, tip: "fra.org → Education Foundation. Applications are open Sept 1 through Apr 15 every year and your own Navy service qualifies you — no FRA membership needed. Mailed packet: postmark by Apr 15 or it's not considered." },
+        { id: "m-caccomo", name: "Apply: AMVETS Dr. Caccomo Memorial — 2027 cycle", maps: "$12,000 × 2 winners · stacks with TA", cu: 0, tip: "amvets.org/caccomo-scholarship — open to active duty, not just veterans. Needs a commanding officer letter in place of discharge papers, plus FAFSA copy, 1040, transcripts, and a resume. Dates post on the AMVETS application portal." },
         { id: "m-sweep", name: "Each term: sweep bold.org + scholarships.com", maps: "$500–$1,000 wins · stack with TA", cu: 0, tip: "Filter military + IT/computer science. Small awards go unclaimed because nobody applies — your essay is already written." },
         { id: "m-zombie", name: "Oddball: Unigo Zombie Apocalypse — by Oct 31", maps: "$2,000 · 250 words", cu: 0, tip: "unigo.com — write a 250-word zombie escape plan. Open to any enrolled student 14+, online included. Their Superpower contest ($2,500) runs to Mar 31." },
         { id: "m-afsa", name: "Oddball: AFSA Second Chance — by Aug 31 yearly", maps: "$1,000 × 5 winners", cu: 0, tip: "afsascholarship.org/secondchance — read a short fire-sprinkler article, answer an open-book quiz. Explicitly open to adult learners." },
@@ -656,15 +658,17 @@ calcMoney();
 const APPS = [
   { id: "fafsa",     name: "FAFSA → Pell Grant",            url: "https://studentaid.gov/", due: "opens Oct 1", docs: "LES / tax return · ~30 min", amt: 3000 },
   { id: "vfw",       name: "VFW Help A Hero",               url: "https://vfwfoundation.org/programs/military-and-family-support/help-a-hero-scholarship/", due: "Nov 15, 2026", docs: "statement of service · enrollment proof · essay", amt: 5000 },
-  { id: "wgu",       name: "WGU scholarship portal",        url: "https://www.wgu.edu/financial-aid-tuition/scholarships.html", due: "90 days before start", docs: "WGU application · essay", amt: 3000 },
-  { id: "tillman",   name: "Pat Tillman",                   url: "https://pattillmanfoundation.org/apply/", due: "opens ~Dec 2026", docs: "essays · service record · confirm full-time counts", amt: 10000 },
+  { id: "wgu",       name: "WGU scholarship portal",        url: "https://www.wgu.edu/financial-aid-tuition/scholarships.html", due: "90 days before start · aid year ends 6/30/27", docs: "WGU application · essay", amt: 3000 },
+  { id: "tillman",   name: "Pat Tillman",                   url: "https://pattillmanfoundation.org/apply/", due: "opens Dec 1, 2026", docs: "essays · service record · confirm full-time counts", amt: 10000 },
   { id: "zombie",    name: "Unigo Zombie Apocalypse",       url: "https://www.unigo.com/scholarships/our-scholarships", due: "Oct 31, 2026", docs: "250-word escape plan", amt: 2000 },
   { id: "superpower",name: "Unigo Superpower",              url: "https://www.unigo.com/scholarships/our-scholarships", due: "Mar 31, 2027", docs: "250-word answer", amt: 2500 },
   { id: "card",      name: "Create-A-Greeting-Card",        url: "https://www.gallerycollection.com/greeting-cards-scholarship/", due: "Mar 8, 2027", docs: "card design · rally votes", amt: 10000 },
   { id: "amvets",    name: "AMVETS",                        url: "https://www.amvets.org/scholarships", due: "~Apr 2027", docs: "command reference letter · transcript · essay", amt: 4000 },
   { id: "afcea",     name: "AFCEA STEM",                    url: "https://www.afcea.org/afcea-educational-foundation/scholarships", due: "~May 2027", docs: "transcript · enrollment proof", amt: 2500 },
   { id: "afsa",      name: "AFSA Second Chance",            url: "https://www.afsascholarship.org/secondchance/", due: "Aug 31, 2027", docs: "open-book quiz — easiest on the list", amt: 1000 },
-  { id: "ccme",      name: "CCME",                          url: "https://www.ccmeonline.org/scholarships", due: "late 2026 cycle", docs: "confirm WGU is a member school first", amt: 1000 },
+  { id: "ccme",      name: "CCME",                          url: "https://www.ccmeonline.org/scholarships", due: "2027 cycle not posted yet", docs: "confirm WGU is a member school first", amt: 1000 },
+  { id: "fra",       name: "FRA Education Foundation",      url: "https://www.fra.org/fra/Web/Events_and_Programs/Fra_Education_Foundation_Scholarships/Web/Content/FRA_Education_Foundation.aspx", due: "Apr 15, 2027", docs: "own Navy service qualifies · postmark by Apr 15", amt: 5000 },
+  { id: "caccomo",   name: "AMVETS Dr. Caccomo Memorial",   url: "https://www.amvets.org/caccomo-scholarship", due: "2027 cycle TBA", docs: "CO letter · FAFSA copy · 1040 · transcript · resume", amt: 12000 },
   { id: "noessay",   name: "Niche + Bold.org monthlies",    url: "https://bold.org/scholarships/by-type/no-essay-scholarships/", due: "monthly", docs: "2-min entries · throwaway email", amt: 2000 },
   { id: "s360",      name: "Scholarships360 $10k No Essay", url: "https://scholarships360.org/scholarships/", due: "monthly", docs: "free profile · explicitly open to adult learners", amt: 10000 },
   { id: "boldmo",    name: "Sallie Mae $2k + SoFi $2.5k monthlies", url: "https://bold.org/scholarships/by-type/no-essay-scholarships/", due: "monthly", docs: "2-min entries via Bold.org · throwaway email", amt: 2500 }
@@ -733,6 +737,7 @@ const DEADLINES = [
   ["2026-12-01", "Pat Tillman application opens (~$10,000)"],
   ["2027-03-08", "Create-A-Greeting-Card ($10,000)"],
   ["2027-03-31", "Unigo Superpower essay ($2,500)"],
+  ["2027-04-15", "FRA Education Foundation ($5,000) — open now, Navy service qualifies"],
   ["2027-08-31", "AFSA Second Chance ($1,000)"]
 ];
 $("deadlineBox").innerHTML = DEADLINES
