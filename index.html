@@ -119,6 +119,12 @@
   .box th { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
   .box tr.hot td { background: var(--good-soft); font-weight: 600; }
 
+  #appBox select {
+    font: inherit; font-size: .82rem; padding: 4px 6px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  #appBox .st-Won { border-color: var(--good); color: var(--good); font-weight: 700; }
+
   /* ---------- guide boxes ---------- */
   .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin: 12px 0; }
   .box.accent { border-left: 4px solid var(--accent); }
@@ -177,6 +183,9 @@
 
     <h2>Deadline radar</h2>
     <div class="box" id="deadlineBox"></div>
+
+    <h2>Application tracker</h2>
+    <div class="box" id="appBox"></div>
 
     <h2>Out-of-pocket calculator</h2>
     <div class="box accent">
@@ -629,13 +638,86 @@ CALC_FIELDS.forEach(id => {
   const el = $(id), saved = (state.calc || {})[id];
   if (saved !== undefined) el.type === "checkbox" ? el.checked = saved : el.value = saved;
 });
-$("moneySec").addEventListener("input", () => {
+function persistCalc() {
   state.calc = {};
   CALC_FIELDS.forEach(id => state.calc[id] = $(id).type === "checkbox" ? $(id).checked : $(id).value);
   save();
   calcMoney();
-});
+}
+$("moneySec").addEventListener("input", persistCalc);
 calcMoney();
+
+/* ==============================================================
+   7. APPLICATION TRACKER — one row per scholarship application:
+   link, due date, documents needed, and your status. Marking a
+   row "Won" auto-fills that money into the calculator.
+   ============================================================== */
+const APPS = [
+  { id: "fafsa",     name: "FAFSA → Pell Grant",            url: "https://studentaid.gov/", due: "opens Oct 1", docs: "LES / tax return · ~30 min", amt: 3000 },
+  { id: "vfw",       name: "VFW Help A Hero",               url: "https://vfwfoundation.org/programs/military-and-family-support/help-a-hero-scholarship/", due: "Nov 15, 2026", docs: "statement of service · enrollment proof · essay", amt: 5000 },
+  { id: "wgu",       name: "WGU scholarship portal",        url: "https://www.wgu.edu/financial-aid-tuition/scholarships.html", due: "90 days before start", docs: "WGU application · essay", amt: 3000 },
+  { id: "tillman",   name: "Pat Tillman",                   url: "https://pattillmanfoundation.org/apply/", due: "opens ~Dec 2026", docs: "essays · service record · confirm full-time counts", amt: 10000 },
+  { id: "zombie",    name: "Unigo Zombie Apocalypse",       url: "https://www.unigo.com/scholarships/our-scholarships", due: "Oct 31, 2026", docs: "250-word escape plan", amt: 2000 },
+  { id: "superpower",name: "Unigo Superpower",              url: "https://www.unigo.com/scholarships/our-scholarships", due: "Mar 31, 2027", docs: "250-word answer", amt: 2500 },
+  { id: "card",      name: "Create-A-Greeting-Card",        url: "https://www.gallerycollection.com/greeting-cards-scholarship/", due: "Mar 8, 2027", docs: "card design · rally votes", amt: 10000 },
+  { id: "amvets",    name: "AMVETS",                        url: "https://www.amvets.org/scholarships", due: "~Apr 2027", docs: "command reference letter · transcript · essay", amt: 4000 },
+  { id: "afcea",     name: "AFCEA STEM",                    url: "https://www.afcea.org/afcea-educational-foundation/scholarships", due: "~May 2027", docs: "transcript · enrollment proof", amt: 2500 },
+  { id: "afsa",      name: "AFSA Second Chance",            url: "https://www.afsascholarship.org/secondchance/", due: "Aug 31, 2027", docs: "open-book quiz — easiest on the list", amt: 1000 },
+  { id: "ccme",      name: "CCME",                          url: "https://www.ccmeonline.org/scholarships", due: "late 2026 cycle", docs: "confirm WGU is a member school first", amt: 1000 },
+  { id: "noessay",   name: "Niche + Bold.org monthlies",    url: "https://bold.org/scholarships/by-type/no-essay-scholarships/", due: "monthly", docs: "2-min entries · throwaway email", amt: 2000 }
+];
+const STATUSES = ["Not started", "In progress", "Applied", "Won", "No luck"];
+state.apps = state.apps || {};
+
+function wonAmt(id) { const a = state.apps[id] || {}; return a.status === "Won" ? +a.amt || 0 : 0; }
+
+// push wins into the matching calculator rows (others pool into "Other scholarships")
+function syncWins() {
+  if (wonAmt("vfw"))   { $("fVfw").checked = true;  $("fVfwAmt").value = wonAmt("vfw"); }
+  if (wonAmt("fafsa")) { $("fPell").checked = true; $("fPellAmt").value = wonAmt("fafsa"); }
+  if (wonAmt("wgu"))   { $("fWgu").checked = true; }
+  const other = ["tillman","zombie","superpower","card","amvets","afcea","afsa","ccme","noessay"]
+    .reduce((s, id) => s + wonAmt(id), 0);
+  if (other > 0) { $("fOther").checked = true; $("fOtherAmt").value = other; }
+  persistCalc();
+}
+
+function renderApps() {
+  const total = APPS.reduce((s, a) => s + wonAmt(a.id), 0);
+  $("appBox").innerHTML =
+    `<p class="small muted">Set the status as you go — everything saves, and "Won" money flows straight into the calculator below.</p>` +
+    APPS.map(a => {
+      const st = (state.apps[a.id] || {}).status || "Not started";
+      const amt = (state.apps[a.id] || {}).amt ?? a.amt;
+      return `<div class="course">
+        <span><span class="name"><a href="${a.url}" target="_blank" rel="noopener">${esc(a.name)}</a></span>
+          <span class="muted small">· ${esc(a.due)}</span><br>
+          <span class="muted small">${esc(a.docs)}</span></span>
+        <span style="flex:none; margin-left:auto; text-align:right">
+          <select data-app="${a.id}" class="st-${st.replace(" ", "-")}">${STATUSES.map(s => `<option ${s === st ? "selected" : ""}>${s}</option>`).join("")}</select>
+          ${st === "Won" ? `<br><label class="small">won $<input class="tiny" type="number" data-appamt="${a.id}" value="${amt}" style="font:inherit;padding:3px 5px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:70px"></label>` : ""}
+        </span>
+      </div>`;
+    }).join("") +
+    `<p><b>Won so far: ${fmt(total)}</b> <span class="muted small">of ${fmt(APPS.reduce((s, a) => s + a.amt, 0))} listed</span></p>`;
+}
+
+$("appBox").addEventListener("change", e => {
+  const id = e.target.dataset.app, amtId = e.target.dataset.appamt;
+  if (id) {
+    state.apps[id] = state.apps[id] || {};
+    state.apps[id].status = e.target.value;
+    if (e.target.value === "Won" && state.apps[id].amt === undefined)
+      state.apps[id].amt = APPS.find(a => a.id === id).amt;
+  } else if (amtId) {
+    state.apps[amtId] = state.apps[amtId] || {};
+    state.apps[amtId].amt = +e.target.value || 0;
+  } else return;
+  save();
+  renderApps();
+  syncWins();
+});
+renderApps();
 
 /* ==============================================================
    6. DEADLINE RADAR — days left until each money deadline.
