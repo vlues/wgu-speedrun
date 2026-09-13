@@ -139,6 +139,7 @@
       <span id="progressText"></span>
     </div>
     <div id="bar"><div id="barFill"></div></div>
+    <div id="nextUp" class="small muted" style="margin-top:4px"></div>
   </div>
 </div>
 
@@ -173,6 +174,9 @@
       </table>
       <p class="small muted">Catches: total aid is capped at WGU's cost of attendance, so stacked money mostly drives your bill to $0 rather than paying you; scholarship money beyond tuition/fees can be taxable. Ask the WGU financial aid office how each award interacts with TA before counting on it.</p>
     </div>
+
+    <h2>Deadline radar</h2>
+    <div class="box" id="deadlineBox"></div>
 
     <h2>Out-of-pocket calculator</h2>
     <div class="box accent">
@@ -376,6 +380,18 @@ const BUILT_IN_PLANS = [
       </ul>
     </div>
 
+    <h2>Free study arsenal</h2>
+    <div class="box">
+      <ul>
+        <li><b>Professor Messer (YouTube, free):</b> complete A+, Network+, and Security+ video courses — the default study path for WGU's cert courses. Watch on 1.5×.</li>
+        <li><b>Jason Dion practice exams (Udemy, ~$15 on sale):</b> when you're passing Dion practice tests at 85%+, schedule the real cert exam. Cheapest confidence money can buy.</li>
+        <li><b>r/WGU + r/WGU_CompSci:</b> search "[course name] pass guide" — nearly every WGU course has a community write-up of exactly what the assessment covers.</li>
+        <li><b>Take the pre-assessment first, always:</b> WGU gives one per course — it tells you the exam's shape and often that you already know enough to test now.</li>
+        <li><b>Anki (free flashcards):</b> shared decks exist for every CompTIA exam — 20 minutes a day on the smoke deck beats weekend cramming.</li>
+        <li><b>AWS/Azure free tiers + a homelab:</b> free accounts cover everything the cloud courses touch, and what you build doubles as your portfolio.</li>
+      </ul>
+    </div>
+
     <h2>Heads-up (2026 changes)</h2>
     <div class="box" style="background: var(--warn-soft)">
       <ul>
@@ -462,6 +478,10 @@ function render() {
 
   $("guide").innerHTML = plan.guideHtml || "";
   $("moneySec").hidden = plan.id !== "wgu-bscne";
+
+  // "Next up": the first unchecked item, so the site always names your next move
+  const next = all.find(c => !done.has(c.id));
+  $("nextUp").textContent = next ? "▶ Next up: " + next.name : "🎉 Everything checked — go walk at commencement.";
   save();
 }
 
@@ -616,6 +636,29 @@ $("moneySec").addEventListener("input", () => {
   calcMoney();
 });
 calcMoney();
+
+/* ==============================================================
+   6. DEADLINE RADAR — days left until each money deadline.
+   Computed live from today's date; past deadlines drop off.
+   ============================================================== */
+const DEADLINES = [
+  ["2026-10-01", "FAFSA opens — file it that day (Pell up to $7,395/yr)"],
+  ["2026-10-31", "Unigo Zombie Apocalypse essay ($2,000)"],
+  ["2026-11-15", "VFW Help A Hero ($5,000) — the big one"],
+  ["2026-12-01", "Pat Tillman application opens (~$10,000)"],
+  ["2027-03-08", "Create-A-Greeting-Card ($10,000)"],
+  ["2027-03-31", "Unigo Superpower essay ($2,500)"],
+  ["2027-08-31", "AFSA Second Chance ($1,000)"]
+];
+$("deadlineBox").innerHTML = DEADLINES
+  .map(([date, name]) => [Math.ceil((new Date(date + "T23:59") - Date.now()) / 864e5), date, name])
+  .filter(([days]) => days >= 0)
+  .map(([days, date, name]) => `
+    <div class="course">
+      <span><span class="name">${esc(name)}</span> <span class="muted small">${date}</span></span>
+      <span class="cu" style="${days <= 30 ? "color:#dc2626;border-color:#dc2626;font-weight:700" : ""}">${days}d left</span>
+    </div>`)
+  .join("") || '<p class="muted">No upcoming deadlines on the radar.</p>';
 </script>
 </body>
 </html>
