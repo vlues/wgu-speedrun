@@ -153,6 +153,44 @@
   <!-- Guide sections (only shown for the built-in WGU plan). -->
   <div id="guide"></div>
 
+  <!-- Free money: verified funding sources + out-of-pocket calculator.
+       Static HTML (not re-rendered), so the inputs keep their values;
+       they're also saved to localStorage like everything else. -->
+  <section id="moneySec" hidden>
+    <h2>Free money — what an active-duty sailor can stack</h2>
+    <div class="box">
+      <p class="small muted">Verified against live pages Sept 2026. None of this is guaranteed — deadlines and rules move — but every row below accepts active-duty enlisted applicants. Dependent-only programs (NMCRS, Navy League) are excluded on purpose.</p>
+      <table>
+        <tr><th>Program</th><th>Up to</th><th>Status (Sept 2026)</th></tr>
+        <tr class="hot"><td><a href="https://vfwfoundation.org/programs/military-and-family-support/help-a-hero-scholarship/">VFW Sport Clips "Help A Hero"</a></td><td>$5,000</td><td><b>OPEN NOW</b> — fall window Aug 1–Nov 15; E-5 and below eligible</td></tr>
+        <tr><td><a href="https://www.wgu.edu/financial-aid-tuition/scholarships/military-veterans/active-duty.html">WGU Active Duty / Military Appreciation Scholarship</a></td><td>$3,000 ($750/term × 4)</td><td>Open — apply 90 days before to 30 days after your start; stacks with TA; one WGU scholarship per student</td></tr>
+        <tr><td><a href="https://studentaid.gov/">Pell Grant (file FAFSA)</a></td><td>$7,395/yr</td><td>Depends on your income — BAH/BAS mostly don't count, so junior enlisted often qualify for a partial award. Run the FAFSA to find out</td></tr>
+        <tr><td><a href="https://pattillmanfoundation.org/apply/">Pat Tillman Scholarship</a></td><td>~$10,000</td><td>Next cycle opens ~Dec 2026; confirm WGU counts as full-time first</td></tr>
+        <tr><td><a href="https://www.amvets.org/scholarships">AMVETS</a></td><td>$4,000</td><td>2026 closed — reopens ~spring 2027 (needs a command letter)</td></tr>
+        <tr><td><a href="https://www.afcea.org/afcea-educational-foundation/scholarships">AFCEA STEM (active duty)</a></td><td>$2,500</td><td>2026 closed — next deadline ~May 2027; online STEM degrees qualify</td></tr>
+        <tr><td><a href="https://www.ccmeonline.org/scholarships">CCME</a></td><td>$1,000</td><td>Cycle opens late 2026 — confirm WGU is a member school first</td></tr>
+        <tr><td><a href="https://www.cool.navy.mil/usn/costs_and_funding/navy_funded_exam_vouchers.htm">Navy COOL</a></td><td>cert vouchers</td><td>Funds cert exams (not tuition) — check current FY allocation</td></tr>
+      </table>
+      <p class="small muted">Catches: total aid is capped at WGU's cost of attendance, so stacked money mostly drives your bill to $0 rather than paying you; scholarship money beyond tuition/fees can be taxable. Ask the WGU financial aid office how each award interacts with TA before counting on it.</p>
+    </div>
+
+    <h2>Out-of-pocket calculator</h2>
+    <div class="box accent">
+      <div class="addForm">
+        <label>WGU terms
+          <select id="cTerms"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
+        </label>
+        <label>Sophia months <input class="tiny" id="cSophia" type="number" min="0" max="12" value="2"></label>
+      </div>
+      <div class="addForm"><label><input type="checkbox" id="fTa" checked> Military TA — $<input class="tiny" id="fTaAmt" type="number" value="4500"> per fiscal year</label></div>
+      <div class="addForm"><label><input type="checkbox" id="fWgu" checked> WGU military scholarship — $750/term automatic</label></div>
+      <div class="addForm"><label><input type="checkbox" id="fVfw"> VFW Help A Hero — $<input class="tiny" id="fVfwAmt" type="number" value="5000"> one-time</label></div>
+      <div class="addForm"><label><input type="checkbox" id="fPell"> Pell Grant — $<input class="tiny" id="fPellAmt" type="number" value="3000"> per year (run FAFSA for your real number)</label></div>
+      <div class="addForm"><label><input type="checkbox" id="fOther"> Other scholarships — $<input class="tiny" id="fOtherAmt" type="number" value="0"> total</label></div>
+      <div id="calcOut" style="margin-top:12px"></div>
+    </div>
+  </section>
+
   <p class="small muted">
     Progress is saved automatically in this browser (localStorage) — nothing leaves your device.
     To move progress to another device: <button id="exportBtn">Copy backup</button>
@@ -390,6 +428,7 @@ function render() {
   $("progressText").textContent = `${doneCu} / ${totalCu} CU · ${pct}%`;
 
   $("guide").innerHTML = plan.guideHtml || "";
+  $("moneySec").hidden = plan.id !== "wgu-bscne";
   save();
 }
 
@@ -501,6 +540,49 @@ $("resetBtn").onclick = () => {
 };
 
 render();
+
+/* ==============================================================
+   5. OUT-OF-POCKET CALCULATOR
+   Cost = terms x $4,125 + Sophia months x $99.
+   Per-year sources (TA, Pell) count once per fiscal year enrolled
+   (2 terms ~ 1 year). Values persist in localStorage via state.calc.
+   ============================================================== */
+const CALC_FIELDS = ["cTerms","cSophia","fTa","fTaAmt","fWgu","fVfw","fVfwAmt","fPell","fPellAmt","fOther","fOtherAmt"];
+const fmt = n => "$" + Math.round(n).toLocaleString();
+
+function calcMoney() {
+  const terms = +$("cTerms").value;
+  const years = Math.ceil(terms / 2);
+  const cost = terms * 4125 + (+$("cSophia").value || 0) * 99;
+  let fund = 0;
+  const lines = [];
+  const add = (label, v) => { fund += v; lines.push(`${label}: ${fmt(v)}`); };
+  if ($("fTa").checked)    add(`TA (${fmt(+$("fTaAmt").value || 0)}/yr × ${years} yr)`, (+$("fTaAmt").value || 0) * years);
+  if ($("fWgu").checked)   add(`WGU scholarship ($750 × ${Math.min(terms, 4)} terms)`, 750 * Math.min(terms, 4));
+  if ($("fVfw").checked)   add("VFW Help A Hero", +$("fVfwAmt").value || 0);
+  if ($("fPell").checked)  add(`Pell (${fmt(+$("fPellAmt").value || 0)}/yr × ${years} yr)`, (+$("fPellAmt").value || 0) * years);
+  if ($("fOther").checked) add("Other scholarships", +$("fOtherAmt").value || 0);
+  const net = Math.max(0, cost - fund);
+  $("calcOut").innerHTML = `
+    <div>Degree cost (${terms} term${terms > 1 ? "s" : ""} + Sophia): <b>${fmt(cost)}</b></div>
+    <div class="small muted">${lines.join(" · ") || "No funding selected"}</div>
+    <div>Funding: <b>${fmt(fund)}</b></div>
+    <div style="font-size:1.15rem; margin-top:6px">Your out of pocket: <b style="color:var(--good)">${fmt(net)}</b></div>
+    ${fund > cost ? `<div class="small muted">Funding above cost doesn't become cash — aid is capped at cost of attendance, and overages can be taxable.</div>` : ""}`;
+}
+
+// restore saved calculator values, then recalc on any change
+CALC_FIELDS.forEach(id => {
+  const el = $(id), saved = (state.calc || {})[id];
+  if (saved !== undefined) el.type === "checkbox" ? el.checked = saved : el.value = saved;
+});
+$("moneySec").addEventListener("input", () => {
+  state.calc = {};
+  CALC_FIELDS.forEach(id => state.calc[id] = $(id).type === "checkbox" ? $(id).checked : $(id).value);
+  save();
+  calcMoney();
+});
+calcMoney();
 </script>
 </body>
 </html>
