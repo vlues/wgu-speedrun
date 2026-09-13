@@ -252,6 +252,7 @@ const BUILT_IN_PLANS = [
         { id: "m-afsa", name: "Oddball: AFSA Second Chance — by Aug 31 yearly", maps: "$1,000 × 5 winners", cu: 0, tip: "afsascholarship.org/secondchance — read a short fire-sprinkler article, answer an open-book quiz. Explicitly open to adult learners." },
         { id: "m-card", name: "Oddball: Create-A-Greeting-Card — by Mar 8", maps: "$10,000 · design a card", cu: 0, tip: "gallerycollection.com — submit a card design (photo/art/graphic). Anyone 14+ enrolled anywhere. Part popularity vote, so rally shipmates." },
         { id: "m-noessay", name: "No-essay lottos: Niche + Bold.org monthlies", maps: "$2,000–$25,000 · 2-min entries", cu: 0, tip: "Real payouts, lottery odds, and they sell your contact info — enter with a throwaway email, never your .mil or main address. Skip the myths: left-handed, tall-club, potato, and Klingon scholarships are dead or don't apply to you." },
+        { id: "m-easy", name: "Monthly 10-minute easy-money circuit", maps: "$2,000–$25,000 · lottery odds · stacks with TA", cu: 0, tip: "First of each month, re-enter the no-essay pools with your throwaway email: Niche ($2k–$25k), Bold.org (Sallie Mae $2k, SoFi $2.5k), Scholarships360 ($10k). Ten minutes total, zero essays, real winners every month — just never use your .mil or main email." },
         { id: "m-finaid", name: "Tell WGU financial aid about every win", maps: "keeps the stack legal", cu: 0, tip: "Report outside scholarships to WGU. Total aid caps at cost of attendance — extra reduces your bill to $0; money beyond tuition/fees can be taxable." }
       ]
     },
@@ -664,7 +665,9 @@ const APPS = [
   { id: "afcea",     name: "AFCEA STEM",                    url: "https://www.afcea.org/afcea-educational-foundation/scholarships", due: "~May 2027", docs: "transcript · enrollment proof", amt: 2500 },
   { id: "afsa",      name: "AFSA Second Chance",            url: "https://www.afsascholarship.org/secondchance/", due: "Aug 31, 2027", docs: "open-book quiz — easiest on the list", amt: 1000 },
   { id: "ccme",      name: "CCME",                          url: "https://www.ccmeonline.org/scholarships", due: "late 2026 cycle", docs: "confirm WGU is a member school first", amt: 1000 },
-  { id: "noessay",   name: "Niche + Bold.org monthlies",    url: "https://bold.org/scholarships/by-type/no-essay-scholarships/", due: "monthly", docs: "2-min entries · throwaway email", amt: 2000 }
+  { id: "noessay",   name: "Niche + Bold.org monthlies",    url: "https://bold.org/scholarships/by-type/no-essay-scholarships/", due: "monthly", docs: "2-min entries · throwaway email", amt: 2000 },
+  { id: "s360",      name: "Scholarships360 $10k No Essay", url: "https://scholarships360.org/scholarships/", due: "monthly", docs: "free profile · explicitly open to adult learners", amt: 10000 },
+  { id: "boldmo",    name: "Sallie Mae $2k + SoFi $2.5k monthlies", url: "https://bold.org/scholarships/by-type/no-essay-scholarships/", due: "monthly", docs: "2-min entries via Bold.org · throwaway email", amt: 2500 }
 ];
 const STATUSES = ["Not started", "In progress", "Applied", "Won", "No luck"];
 state.apps = state.apps || {};
