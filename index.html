@@ -113,6 +113,12 @@
   .addForm input.wide { flex: 1 1 180px; }
   .addForm input.tiny { width: 64px; }
 
+  /* ---------- guide tables ---------- */
+  .box table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: .9rem; }
+  .box th, .box td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .box th { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+  .box tr.hot td { background: var(--good-soft); font-weight: 600; }
+
   /* ---------- guide boxes ---------- */
   .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin: 12px 0; }
   .box.accent { border-left: 4px solid var(--accent); }
@@ -252,6 +258,29 @@ const BUILT_IN_PLANS = [
         <li><b>2. Enroll at WGU.</b> Tuition is flat per 6-month term (~$3,925 + $200 fees) no matter how many courses you pass — the whole speedrun is "pass more courses per term, pay for fewer terms."</li>
         <li><b>3. Accelerate.</b> Hit On-Time Progress (12 CUs) early in the term, then ask your program mentor to add courses one at a time. Cert courses are cleared by passing the cert exam itself.</li>
         <li><b>4. Realistic pace:</b> heavy accelerators finish in 1–2 terms after a strong Sophia phase; a relaxed-but-efficient run is 3–4 terms. Every term saved is ~$4,125 saved.</li>
+      </ul>
+    </div>
+
+    <h2>The math — three ways this run can go</h2>
+    <div class="box">
+      <p class="small muted">Same degree either way — the only variable is how many CUs you clear per flat-rate term. Costs assume ~$4,125/term + ~$200–$300 of Sophia.</p>
+      <table>
+        <tr><th>Pace</th><th>What it looks like</th><th>Time</th><th>Out of pocket*</th></tr>
+        <tr><td><b>Cruise</b></td><td>Skip Sophia, ~28 CUs/term at WGU</td><td>~2 years (4 terms)</td><td>~$16,500</td></tr>
+        <tr><td><b>Solid speedrun</b></td><td>2 months of Sophia first, then 2 focused terms (~41 CUs each)</td><td>~14 months</td><td>~$8,550</td></tr>
+        <tr class="hot"><td>All-out</td><td>Max Sophia + JST/CLEP transfer, then one monster term living in the coursework</td><td>~8–9 months</td><td>~$4,400</td></tr>
+      </table>
+      <p class="small muted">*Before TA. With military Tuition Assistance covering terms, the fast paths can land near <b>$0–$300 total</b>. Rough estimates — your transfer evaluation sets the real number.</p>
+    </div>
+
+    <h2>What's waiting at the finish line</h2>
+    <div class="box accent">
+      <ul>
+        <li><b>A bachelor's degree + 7 industry certs</b> in one shot: CompTIA A+ (×2 exams), Network+, Security+, Cloud+, Linux Essentials, and ITIL 4 — all voucher-paid. The certs alone are resume-ready before you even graduate.</li>
+        <li><b>Roles it targets:</b> cloud support / cloud engineer, network engineer, systems administrator, NOC/infrastructure roles. Typical U.S. ranges: entry IT $50–70k, cloud/network engineer $85–120k+ with a couple years' experience (varies a lot by market and clearance).</li>
+        <li><b>While still serving:</b> a completed degree strengthens evals and opens commissioning paths (e.g., OCS/STA-21-type programs), and Security+ satisfies common DoD 8570/8140 role requirements.</li>
+        <li><b>Clearance + certs + degree</b> is a strong combo for cleared contractor roles after separation, which often pay above the civilian ranges above.</li>
+        <li><b>Momentum option:</b> WGU's IT master's programs take this degree directly, and an accelerated bachelor's leaves GI Bill untouched to fund one later.</li>
       </ul>
     </div>
 
