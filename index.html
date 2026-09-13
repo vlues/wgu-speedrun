@@ -125,6 +125,14 @@
   }
   #appBox .st-Won { border-color: var(--good); color: var(--good); font-weight: 700; }
 
+  /* ---------- collapsible sections + jump nav ---------- */
+  details.sec { margin: 22px 0 10px; }
+  details.sec > summary { font-size: 1.15rem; font-weight: 700; cursor: pointer; padding: 4px 0; }
+  details.sec > summary:hover { color: var(--accent); }
+  #nav { display: flex; gap: 14px; margin-top: 6px; font-size: .85rem; flex-wrap: wrap; }
+  #nav a { text-decoration: none; white-space: nowrap; }
+  [id] { scroll-margin-top: 130px; }
+
   /* ---------- guide boxes ---------- */
   .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin: 12px 0; }
   .box.accent { border-left: 4px solid var(--accent); }
@@ -146,12 +154,23 @@
     </div>
     <div id="bar"><div id="barFill"></div></div>
     <div id="nextUp" class="small muted" style="margin-top:4px"></div>
+    <div id="nav">
+      <a href="#doNow">🎯 Do next</a>
+      <a href="#phases">📚 Courses</a>
+      <a href="#payout">💵 Payouts</a>
+      <a href="#radar">⏰ Deadlines</a>
+      <a href="#apps">📝 Applications</a>
+      <a href="#calc">🧮 Calculator</a>
+    </div>
   </div>
 </div>
 
 <main>
   <h1 id="pageTitle"></h1>
   <p class="muted" id="pageSub"></p>
+
+  <!-- Your three immediate moves, computed from what's unchecked + nearest deadline. -->
+  <div class="box accent" id="doNow" hidden></div>
 
   <!-- The route (phases + courses) renders here from the PLAN data below. -->
   <div id="phases"></div>
@@ -505,7 +524,9 @@ function render() {
   $("progressText").textContent = `${doneCu} / ${totalCu} CU · ${pct}%`;
 
   $("guide").innerHTML = plan.guideHtml || "";
+  collapsify($("guide"));
   $("moneySec").hidden = plan.id !== "wgu-bscne";
+  updateDoNow();
 
   // "Next up": the first unchecked item, so the site always names your next move
   const next = all.find(c => !done.has(c.id));
@@ -620,7 +641,58 @@ $("resetBtn").onclick = () => {
   render();
 };
 
+/* ==============================================================
+   4b. READABILITY — every h2 in the guide/money areas becomes a
+   collapsible section. Action sections start open, reference
+   prose starts folded; your toggles are remembered per session.
+   ============================================================== */
+const OPEN_DEFAULT = new Set([
+  "How the speedrun works",
+  "Payout board — biggest first",
+  "Deadline radar",
+  "Application tracker",
+  "Out-of-pocket calculator"
+]);
+const SEC_IDS = { "Payout board — biggest first": "payout", "Deadline radar": "radar",
+                  "Application tracker": "apps", "Out-of-pocket calculator": "calc" };
+const secOpen = {};   // per-session memory of which sections the user opened/closed
+
+function collapsify(root) {
+  root.querySelectorAll("h2").forEach(h2 => {
+    const title = h2.textContent;
+    const d = document.createElement("details");
+    d.className = "sec";
+    d.open = title in secOpen ? secOpen[title] : OPEN_DEFAULT.has(title);
+    if (SEC_IDS[title]) d.id = SEC_IDS[title];
+    const s = document.createElement("summary");
+    s.textContent = title;
+    d.appendChild(s);
+    h2.replaceWith(d);
+    while (d.nextSibling && d.nextSibling.tagName !== "H2") d.appendChild(d.nextSibling);
+    d.addEventListener("toggle", () => secOpen[title] = d.open);
+  });
+}
+
+// "Do these next": nearest deadline + next money move + next course move.
+function updateDoNow() {
+  const plan = currentPlan();
+  $("doNow").hidden = plan.id !== "wgu-bscne";
+  if ($("doNow").hidden || !window.DEADLINES_ARR) return;
+  const done = doneSet(plan);
+  const items = plan.phases.flatMap(p => p.items);
+  const money = items.find(c => c.id.startsWith("m-") && !done.has(c.id));
+  const course = items.find(c => !c.id.startsWith("m-") && !done.has(c.id));
+  const dl = window.DEADLINES_ARR
+    .map(([d, n]) => [Math.ceil((new Date(d + "T23:59") - Date.now()) / 864e5), n])
+    .filter(([days]) => days >= 0)[0];
+  $("doNow").innerHTML = `<b>🎯 Do these next</b><ul>` +
+    (dl ? `<li>⏰ <b>${dl[0]} days:</b> ${esc(dl[1])}</li>` : "") +
+    (money ? `<li>💵 ${esc(money.name)}</li>` : "") +
+    (course ? `<li>📚 ${esc(course.name)}</li>` : "") + `</ul>`;
+}
+
 render();
+collapsify($("moneySec"));
 
 /* ==============================================================
    5. OUT-OF-POCKET CALCULATOR
@@ -765,6 +837,8 @@ $("deadlineBox").innerHTML = DEADLINES
       <span class="cu" style="${days <= 30 ? "color:#dc2626;border-color:#dc2626;font-weight:700" : ""}">${days}d left</span>
     </div>`)
   .join("") || '<p class="muted">No upcoming deadlines on the radar.</p>';
+window.DEADLINES_ARR = DEADLINES;
+updateDoNow();
 </script>
 </body>
 </html>
