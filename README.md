@@ -1,31 +1,28 @@
-# Degree Speedrun Tracker
+# Degree Speedrun
 
-A single-page site that lays out a "speedrun" route through WGU's **BS Cloud and Network Engineering**
-(the degree that replaced BS Cloud Computing) — cheapest courses first via Sophia.org, then WGU —
-with checkboxes to track what you've completed.
+Pick a degree plan, see which Sophia.org courses clear the most of it, check them off, and watch
+the credits and cost drop.
 
 **Live site:** https://vlues.github.io/wgu-speedrun/
 
-## How it works
+## Tabs
 
-- Everything is in one file: [`index.html`](index.html). No frameworks, no build step.
-- The route/course data is a plain JavaScript array near the top of the `<script>` tag
-  (`BUILT_IN_PLANS`) — edit it there to change courses, CUs, or tips.
-- Progress, custom plans, and your selected plan are saved in your browser's
-  `localStorage`, so the site remembers your checkmarks between visits.
-  (Per-browser/per-device — clearing site data resets it.)
-- **＋ New plan** lets you track a different school/degree entirely: name it, add phases
-  and courses right on the page. Custom plans are also saved locally.
+- **My Plan**: pick one of 19 degree plans (WGU, UMGC, Embry-Riddle). Shows credits knocked off,
+  credits left, what you pay after TA, the best Sophia courses to take next, and a 6-step checklist.
+- **Sophia**: every Sophia course, what it clears in your plan, and how many plans it counts in.
+- **Compare**: all 19 plans side by side. Tap one to switch to it.
+- **Money**: cost after TA, Pell and scholarships; deadlines; a scholarship application tracker.
 
-## Editing / deploying
+## Editing
 
-Edit `index.html`, then:
+Everything is in [`index.html`](index.html), plain HTML and JavaScript with no build step.
+The data lives in clearly labeled lists at the top of the script:
 
-```
-git add -A && git commit -m "update" && git push
-```
+- `PLANS`: degree plans (credits, price, how much JST each can use)
+- `SOPHIA`: Sophia courses and what each one clears at each school
+- `APPS` and `DEADLINES`: scholarships (a monthly scheduled task keeps these fresh)
 
-GitHub Pages redeploys automatically from the `main` branch.
+Progress is saved in your browser's `localStorage`. Use **Copy backup / Restore backup** at the
+bottom to move it to another device.
 
-> Note: course mappings and WGU program details change often — always confirm against
-> WGU's official transfer pathways and an enrollment counselor before spending money.
+All numbers are planning estimates. Confirm with each school before paying for anything.

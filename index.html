@@ -3,774 +3,361 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Degree Speedrun Tracker</title>
-<meta name="description" content="Speedrun route and progress tracker for WGU's BS Cloud & Network Engineering — cheapest credits first via Sophia, then accelerate at WGU.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
+<title>Degree Speedrun</title>
+<meta name="description" content="Pick a degree, see which Sophia courses clear the most of it, and track your progress and cost.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
 <style>
   /* ============================================================
-     THEME — colors live here. Dark mode switches automatically.
+     THEME
      ============================================================ */
   :root {
-    --bg: #f5f7fb;
+    --bg: #f6f7f9;
     --card: #ffffff;
-    --ink: #1a2233;
-    --muted: #5b6577;
-    --line: #e3e8f0;
-    --accent: #2563eb;      /* cloud blue */
-    --accent-soft: #dbeafe;
-    --good: #16a34a;
-    --good-soft: #dcfce7;
-    --warn-soft: #fef9c3;
+    --ink: #111827;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --accent-soft: #eff4ff;
+    --good: #15803d;
+    --good-soft: #ecfdf3;
+    --warn: #b45309;
+    --warn-soft: #fffbeb;
+    --bad: #b91c1c;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0f1420;
-      --card: #171e2e;
-      --ink: #e8edf6;
-      --muted: #9aa6ba;
-      --line: #2a3348;
-      --accent: #60a5fa;
-      --accent-soft: #1e3a5f;
-      --good: #4ade80;
-      --good-soft: #143522;
-      --warn-soft: #3a3620;
+      --bg: #0d1117;
+      --card: #161b22;
+      --ink: #e6edf3;
+      --muted: #8b949e;
+      --line: #30363d;
+      --accent: #58a6ff;
+      --accent-soft: #132339;
+      --good: #3fb950;
+      --good-soft: #12261a;
+      --warn: #d29922;
+      --warn-soft: #2a2213;
+      --bad: #f85149;
     }
   }
 
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    font: 16px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--ink);
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  main { max-width: 860px; margin: 0 auto; padding: 16px 16px 80px; }
   a { color: var(--accent); }
-  h1 { font-size: 1.5rem; margin: 8px 0 2px; }
-  h2 { font-size: 1.15rem; margin: 28px 0 10px; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px 16px 60px; }
+  h2 { font-size: 1.05rem; margin: 0 0 10px; }
   .muted { color: var(--muted); }
   .small { font-size: .85rem; }
+  [hidden] { display: none !important; }
 
-  /* ---------- sticky progress header ---------- */
-  #topbar {
-    position: sticky; top: 0; z-index: 10;
-    background: var(--card);
-    border-bottom: 1px solid var(--line);
-    padding: 10px 16px;
+  /* ---------- header + tabs ---------- */
+  header { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
+  header .inner { max-width: 760px; margin: 0 auto; padding: 12px 16px 0; }
+  header .title { font-weight: 800; font-size: 1.1rem; }
+  header .plan-line { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+  nav { display: flex; gap: 4px; margin-top: 10px; overflow-x: auto; }
+  nav button {
+    flex: 1; border: none; background: none; color: var(--muted); font: inherit; font-size: .9rem; font-weight: 600;
+    padding: 10px 8px; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap;
   }
-  #topbar .inner { max-width: 860px; margin: 0 auto; }
-  #topbar .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  #planSelect {
-    font: inherit; padding: 6px 8px; border-radius: 8px;
-    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
-    max-width: 100%;
-  }
-  button {
-    font: inherit; font-size: .85rem; padding: 6px 10px; border-radius: 8px;
-    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
-    cursor: pointer;
-  }
-  button:hover { border-color: var(--accent); color: var(--accent); }
-  button.danger:hover { border-color: #dc2626; color: #dc2626; }
-  #progressText { margin-left: auto; font-size: .9rem; white-space: nowrap; }
-  #bar { height: 8px; border-radius: 99px; background: var(--line); margin-top: 8px; overflow: hidden; }
-  #barFill { height: 100%; width: 0%; background: var(--accent); border-radius: 99px; transition: width .3s; }
+  nav button.on { color: var(--accent); border-bottom-color: var(--accent); }
 
-  /* ---------- phase cards ---------- */
-  .phase {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; padding: 16px 18px; margin: 14px 0;
-  }
-  .phase > h3 { margin: 0 0 2px; font-size: 1.05rem; }
-  .phase .blurb { margin: 2px 0 10px; }
-  .phase .count {
-    float: right; font-size: .8rem; color: var(--muted);
-    background: var(--bg); border: 1px solid var(--line);
-    padding: 2px 8px; border-radius: 99px;
-  }
-  .course {
-    display: flex; gap: 10px; align-items: flex-start;
-    padding: 8px 6px; border-top: 1px solid var(--line);
-  }
-  .course input[type=checkbox] { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--good); flex: none; }
-  .course.done { background: var(--good-soft); border-radius: 8px; }
-  .course.done .name { text-decoration: line-through; color: var(--muted); }
-  .course .name { font-weight: 600; }
-  .course .cu {
-    flex: none; margin-left: auto; font-size: .78rem; color: var(--muted);
-    background: var(--bg); border: 1px solid var(--line);
-    padding: 1px 7px; border-radius: 99px; white-space: nowrap; margin-top: 3px;
-  }
-  .course .del { flex: none; border: none; background: none; color: var(--muted); font-size: 1rem; padding: 0 4px; }
-  .course .del:hover { color: #dc2626; }
+  /* ---------- cards + stats ---------- */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin: 0 0 14px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0 6px; }
+  .stat { background: var(--bg); border-radius: 10px; padding: 10px; text-align: center; }
+  .stat b { display: block; font-size: 1.35rem; }
+  .stat span { font-size: .75rem; color: var(--muted); }
+  .bar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+  .bar > div { height: 100%; background: var(--good); border-radius: 99px; transition: width .3s; }
+  .bar > div + div { background: var(--accent); opacity: .35; }
+  .legend { display: flex; gap: 14px; font-size: .78rem; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
 
-  /* ---------- custom-plan add-course form ---------- */
-  .addForm { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-  .addForm input {
-    font: inherit; font-size: .85rem; padding: 6px 8px; border-radius: 8px;
+  /* ---------- inputs ---------- */
+  select, input[type=number] {
+    font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
+  }
+  select.big { width: 100%; font-size: 1rem; font-weight: 600; }
+  input[type=number] { width: 80px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .field { font-size: .85rem; color: var(--muted); }
+  button.btn {
+    font: inherit; font-size: .85rem; padding: 7px 12px; border-radius: 10px; cursor: pointer;
     border: 1px solid var(--line); background: var(--bg); color: var(--ink);
   }
-  .addForm input.wide { flex: 1 1 180px; }
-  .addForm input.tiny { width: 64px; }
-
-  /* ---------- guide tables ---------- */
-  .box table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: .9rem; }
-  .box th, .box td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  .box th { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
-  .box tr.hot td { background: var(--good-soft); font-weight: 600; }
-
-  #appBox select {
-    font: inherit; font-size: .82rem; padding: 4px 6px; border-radius: 8px;
-    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  button.btn:hover { border-color: var(--accent); color: var(--accent); }
+  .chips { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .chip {
+    font: inherit; font-size: .82rem; padding: 6px 12px; border-radius: 99px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
   }
-  #appBox .st-Won { border-color: var(--good); color: var(--good); font-weight: 700; }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-  /* ---------- collapsible sections + jump nav ---------- */
-  details.sec { margin: 22px 0 10px; }
-  details.sec > summary { font-size: 1.15rem; font-weight: 700; cursor: pointer; padding: 4px 0; }
-  details.sec > summary:hover { color: var(--accent); }
-  #nav { display: flex; gap: 14px; margin-top: 6px; font-size: .85rem; flex-wrap: wrap; }
-  #nav a { text-decoration: none; white-space: nowrap; }
-  [id] { scroll-margin-top: 130px; }
+  /* ---------- list rows ---------- */
+  .item { display: flex; gap: 10px; align-items: flex-start; padding: 11px 2px; border-top: 1px solid var(--line); }
+  .item:first-child { border-top: none; }
+  .item input[type=checkbox] { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--good); flex: none; }
+  .item .main { flex: 1; min-width: 0; }
+  .item .name { font-weight: 600; }
+  .item.done .name { color: var(--muted); text-decoration: line-through; }
+  .item .sub { font-size: .8rem; color: var(--muted); }
+  .item .right { flex: none; text-align: right; font-size: .8rem; }
+  .tag { display: inline-block; font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+  .tag.yes { background: var(--good-soft); color: var(--good); }
+  .tag.maybe { background: var(--warn-soft); color: var(--warn); }
+  .tag.no { background: var(--bg); color: var(--muted); }
+  .tag.major { background: var(--accent-soft); color: var(--accent); }
 
-  /* ---------- guide boxes ---------- */
-  .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin: 12px 0; }
-  .box.accent { border-left: 4px solid var(--accent); }
-  .box ul { margin: 8px 0; padding-left: 20px; }
-  .box li { margin: 5px 0; }
+  /* ---------- compare table ---------- */
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 8px; }
+  td { padding: 10px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+  tr.pick { cursor: pointer; }
+  tr.pick:hover td { background: var(--accent-soft); }
+  tr.current td { background: var(--good-soft); }
+  .school { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+  .note { background: var(--warn-soft); border-radius: 10px; padding: 10px 12px; font-size: .85rem; }
+  ol.steps { padding-left: 0; list-style: none; margin: 0; }
+  footer { text-align: center; font-size: .8rem; color: var(--muted); margin-top: 24px; }
 </style>
 </head>
 <body>
 
-<!-- Sticky bar: plan switcher + overall progress. -->
-<div id="topbar">
+<header>
   <div class="inner">
-    <div class="row">
-      <select id="planSelect" title="Switch plan"></select>
-      <button id="newPlanBtn" title="Track a different school/degree">＋ New plan</button>
-      <button id="renamePlanBtn" hidden>Rename</button>
-      <button id="deletePlanBtn" class="danger" hidden>Delete plan</button>
-      <span id="progressText"></span>
-    </div>
-    <div id="bar"><div id="barFill"></div></div>
-    <div id="nextUp" class="small muted" style="margin-top:4px"></div>
-    <div id="nav">
-      <a href="#doNow">🎯 Do next</a>
-      <a href="#phases">📚 Courses</a>
-      <a href="#compare">🏫 Compare</a>
-      <a href="#payout">💵 Payouts</a>
-      <a href="#radar">⏰ Deadlines</a>
-      <a href="#apps">📝 Applications</a>
-      <a href="#calc">🧮 Calculator</a>
-    </div>
+    <div class="title">🎓 Degree Speedrun</div>
+    <div class="plan-line" id="planLine"></div>
+    <nav>
+      <button data-tab="plan" class="on">My Plan</button>
+      <button data-tab="sophia">Sophia</button>
+      <button data-tab="compare">Compare</button>
+      <button data-tab="money">Money</button>
+    </nav>
   </div>
-</div>
+</header>
 
 <main>
-  <h1 id="pageTitle"></h1>
-  <p class="muted" id="pageSub"></p>
 
-  <!-- Your three immediate moves, computed from what's unchecked + nearest deadline. -->
-  <div class="box accent" id="doNow" hidden></div>
+  <!-- ===================== TAB 1: MY PLAN ===================== -->
+  <section id="tab-plan">
+    <div class="card">
+      <h2>Your degree plan</h2>
+      <select class="big" id="planSelect"></select>
+      <p class="small muted" id="planNote"></p>
+      <div class="stats">
+        <div class="stat"><b id="sDone"></b><span>knocked off</span></div>
+        <div class="stat"><b id="sLeft"></b><span>left to take</span></div>
+        <div class="stat"><b id="sPay"></b><span>you pay after TA</span></div>
+      </div>
+      <div class="bar"><div id="barDone"></div><div id="barMore"></div></div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--good)"></i>Done (Sophia + JST)</span>
+        <span><i class="dot" style="background:var(--accent);opacity:.4"></i>Still possible with more Sophia</span>
+      </div>
+    </div>
 
-  <!-- The route (phases + courses) renders here from the PLAN data below. -->
-  <div id="phases"></div>
-  <p><button id="addPhaseBtn" hidden>＋ Add phase</button></p>
+    <div class="card">
+      <h2>Best Sophia courses for this plan</h2>
+      <p class="small muted">Not taken yet, most useful first. Check them off on the Sophia tab.</p>
+      <div id="bestList"></div>
+    </div>
 
-  <!-- School comparison: WGU vs Embry-Riddle vs UMGC, computed from the
-       SCHOOL_PLANS data in section 8 of the script. -->
-  <section id="compareSec">
-    <h2>Compare schools &amp; degree plans</h2>
-    <div class="box accent">
-      <p class="small muted">How much of each degree your credits can knock off, and what's left to pay for. Estimates only. Get a free unofficial evaluation from each school before you enroll.</p>
-      <div class="addForm">
-        <label><input type="checkbox" id="xSophia" checked> My 3 Sophia courses (9 credits)</label>
-        <label>JST credits <input class="tiny" id="xJst" type="number" min="0" max="60" value="24"></label>
-        <label><input type="checkbox" id="xMax"> Max out Sophia/CLEP before enrolling</label>
-        <label>Finish in
-          <select id="xYears"><option>1</option><option selected>2</option><option>3</option><option>4</option></select> years
+    <div class="card">
+      <h2>Steps</h2>
+      <ol class="steps" id="steps"></ol>
+    </div>
+
+    <div class="card">
+      <h2>Your numbers</h2>
+      <div class="row">
+        <label class="field">JST credits<br><input type="number" id="jst" min="0" max="90"></label>
+        <label class="field">Finish in<br>
+          <select id="years"><option value="1">1 year</option><option value="2">2 years</option><option value="3">3 years</option><option value="4">4 years</option></select>
         </label>
       </div>
-      <p class="small muted">JST default = Navy ABH3 with ~5 years: about 6 credits from boot camp, 3 from A-school, 15 from the ABH3 rating itself (almost all lower-division). Real JSTs range about 21–33. Check yours free at jst.doded.mil and type your real number in.</p>
-      <div style="overflow-x:auto"><table id="cmpTable"></table></div>
-      <ul class="small">
-        <li><b>Why WGU wins on speed:</b> TA pays at most $4,500 a year. Per-credit schools ($250/credit) get about 18 credits a year from that. WGU's flat term price lets you pass as many courses as you can for the same money.</li>
-        <li><b>Why UMGC wins on credit transfer:</b> it's an official Sophia partner (your 3 courses map 1:1), takes up to 90 of 120 credits, and has on-base offices across Europe.</li>
-        <li><b>Why Embry-Riddle fits your rating:</b> BS Aeronautics is built to absorb aviation training like yours. But Sophia isn't a confirmed partner there, so Sophia credit goes through a regular transcript review.</li>
-        <li><b>The catch with the most-transfer degrees:</b> General Studies and Aeronautics take the most credit, but they say less "cloud engineer" on a resume than a cloud/IT degree does. Your certs make up a lot of that gap.</li>
-      </ul>
+      <p class="small muted">JST default is 24, an estimate for a Navy ABH3 with about 5 years (boot camp ~6, A-school ~3, the ABH3 rating ~15). Get your real number free at <a href="https://jst.doded.mil" target="_blank" rel="noopener">jst.doded.mil</a>.</p>
     </div>
   </section>
 
-  <!-- Guide sections (only shown for the built-in WGU plan). -->
-  <div id="guide"></div>
-
-  <!-- Free money: verified funding sources + out-of-pocket calculator.
-       Static HTML (not re-rendered), so the inputs keep their values;
-       they're also saved to localStorage like everything else. -->
-  <section id="moneySec" hidden>
-    <h2>Payout board — biggest first</h2>
-    <div class="box accent">
-      <table>
-        <tr><th>#</th><th>Money</th><th>Amount</th><th>How + real odds</th></tr>
-        <tr><td>1</td><td>AMVETS Dr. Caccomo Memorial</td><td>$12,000</td><td>Two winners/yr, active duty eligible — CO letter replaces discharge papers. Needs CO letter, FAFSA copy, 1040, transcript, resume. 2027 dates TBA.</td></tr>
-        <tr><td>2</td><td>Pat Tillman</td><td>~$10,000</td><td>Opens Dec 1. Hardest to win — they pick leaders; your service record + the speedrun-to-cloud-career story is their type.</td></tr>
-        <tr><td>3</td><td>Tuition Assistance</td><td>~$9,000 total</td><td>Not a lottery — an entitlement you file for. ~$4,500/FY × 2 fiscal years. The backbone of the whole run.</td></tr>
-        <tr class="hot"><td>4</td><td>Pell Grant</td><td>$7,395/yr</td><td>The one that can pay YOU: aid runs up to full cost of attendance (living expenses included), so with tuition already covered by TA, Pell can disburse to your bank as a cash refund each term. File FAFSA Oct 1. Refunds beyond tuition are taxable — save a slice.</td></tr>
-        <tr><td>5</td><td>VFW Help A Hero</td><td>$5,000</td><td>Best odds-to-effort on the board — E-5 and below only means a tiny applicant pool. Due Nov 15. One essay + statement of service.</td></tr>
-        <tr><td>6</td><td>FRA Education Foundation</td><td>$5,000</td><td>Sea-service specific — your own Navy service qualifies, no membership. Open now, mailed packet postmarked by Apr 15. Small pool, real odds.</td></tr>
-        <tr><td>7</td><td>WGU military scholarship</td><td>$3,000</td><td>Closest thing to a sure bet — $750/term, apply in the portal 90 days before your start.</td></tr>
-        <tr><td>8</td><td>The rest</td><td>$1,000–$10,000</td><td>AMVETS $4k, AFCEA $2.5k, greeting card $10k long shot, no-essay lottos — apply in spare minutes, expect nothing, bank the surprises.</td></tr>
-      </table>
-      <p class="small muted">Realistic outcome if you work the board: TA + Pell refund + one or two mid-list wins = degree fully paid <b>plus cash in pocket each term</b>. And the biggest payout isn't listed — finishing two terms early beats every scholarship combined once the $85k+ job starts.</p>
-    </div>
-
-    <h2>Free money — what an active-duty sailor can stack</h2>
-    <div class="box">
-      <p class="small muted">Verified against live pages Sept 2026. None of this is guaranteed — deadlines and rules move — but every row below accepts active-duty enlisted applicants. Dependent-only programs (NMCRS, Navy League) are excluded on purpose.</p>
-      <table>
-        <tr><th>Program</th><th>Up to</th><th>Status (Sept 2026)</th></tr>
-        <tr class="hot"><td><a href="https://vfwfoundation.org/programs/military-and-family-support/help-a-hero-scholarship/">VFW Sport Clips "Help A Hero"</a></td><td>$5,000</td><td><b>OPEN NOW</b> — fall window Aug 1–Nov 15; E-5 and below eligible</td></tr>
-        <tr><td><a href="https://www.wgu.edu/financial-aid-tuition/scholarships/military-veterans/active-duty.html">WGU Active Duty / Military Appreciation Scholarship</a></td><td>$3,000 ($750/term × 4)</td><td>Open — apply 90 days before to 30 days after your start; stacks with TA; one WGU scholarship per student</td></tr>
-        <tr><td><a href="https://studentaid.gov/">Pell Grant (file FAFSA)</a></td><td>$7,395/yr</td><td>Depends on your income — BAH/BAS mostly don't count, so junior enlisted often qualify for a partial award. Run the FAFSA to find out</td></tr>
-        <tr><td><a href="https://pattillmanfoundation.org/apply/">Pat Tillman Scholarship</a></td><td>~$10,000</td><td>Next cycle opens ~Dec 2026; confirm WGU counts as full-time first</td></tr>
-        <tr><td><a href="https://www.amvets.org/scholarships">AMVETS</a></td><td>$4,000</td><td>2026 closed — reopens ~spring 2027 (needs a command letter)</td></tr>
-        <tr><td><a href="https://www.afcea.org/afcea-educational-foundation/scholarships">AFCEA STEM (active duty)</a></td><td>$2,500</td><td>2026 closed — next deadline ~May 2027; online STEM degrees qualify</td></tr>
-        <tr><td><a href="https://www.ccmeonline.org/scholarships">CCME</a></td><td>$1,000</td><td>Cycle opens late 2026 — confirm WGU is a member school first</td></tr>
-        <tr><td><a href="https://www.cool.navy.mil/usn/costs_and_funding/navy_funded_exam_vouchers.htm">Navy COOL</a></td><td>cert vouchers</td><td>Funds cert exams (not tuition) — check current FY allocation</td></tr>
-      </table>
-      <p class="small muted">Catches: total aid is capped at WGU's cost of attendance, so stacked money mostly drives your bill to $0 rather than paying you; scholarship money beyond tuition/fees can be taxable. Ask the WGU financial aid office how each award interacts with TA before counting on it.</p>
-    </div>
-
-    <h2>Deadline radar</h2>
-    <div class="box" id="deadlineBox"></div>
-
-    <h2>Application tracker</h2>
-    <div class="box" id="appBox"></div>
-
-    <h2>Out-of-pocket calculator</h2>
-    <div class="box accent">
-      <div class="addForm">
-        <label>WGU terms
-          <select id="cTerms"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
-        </label>
-        <label>Sophia months <input class="tiny" id="cSophia" type="number" min="0" max="12" value="2"></label>
+  <!-- ===================== TAB 2: SOPHIA ===================== -->
+  <section id="tab-sophia" hidden>
+    <div class="card">
+      <h2 id="sophiaHead"></h2>
+      <p class="small muted" id="sophiaSummary"></p>
+      <div class="chips">
+        <button class="chip on" data-filter="mine">Counts for my plan</button>
+        <button class="chip" data-filter="all">All courses</button>
       </div>
-      <div class="addForm"><label><input type="checkbox" id="fTa" checked> Military TA — $<input class="tiny" id="fTaAmt" type="number" value="4500"> per fiscal year</label></div>
-      <div class="addForm"><label><input type="checkbox" id="fWgu" checked> WGU military scholarship — $750/term automatic</label></div>
-      <div class="addForm"><label><input type="checkbox" id="fVfw"> VFW Help A Hero — $<input class="tiny" id="fVfwAmt" type="number" value="5000"> one-time</label></div>
-      <div class="addForm"><label><input type="checkbox" id="fPell"> Pell Grant — $<input class="tiny" id="fPellAmt" type="number" value="3000"> per year (run FAFSA for your real number)</label></div>
-      <div class="addForm"><label><input type="checkbox" id="fOther"> Other scholarships — $<input class="tiny" id="fOtherAmt" type="number" value="0"> total</label></div>
-      <div id="calcOut" style="margin-top:12px"></div>
+      <div id="sophiaList"></div>
+    </div>
+    <p class="small muted">Sophia is $99/month, self-paced, open-book. Most people finish 2–4 courses a month. Mappings verified Sept 2026. <span class="tag maybe">likely</span> means the school reviews it case by case.</p>
+  </section>
+
+  <!-- ===================== TAB 3: COMPARE ===================== -->
+  <section id="tab-compare" hidden>
+    <div class="card">
+      <h2>Every degree plan, side by side</h2>
+      <p class="small muted">Uses your checked Sophia courses and JST number. Tap a row to make it your plan.</p>
+      <div class="chips">
+        <button class="chip on" data-sort="pay">Cheapest first</button>
+        <button class="chip" data-sort="done">Most knocked off</button>
+        <button class="chip" data-sort="fit">Best for cloud jobs</button>
+      </div>
+      <div class="scroll"><table id="cmpTable"></table></div>
+    </div>
+    <div class="card small">
+      <p><b>How to read this.</b> "Knocked off" is what your Sophia courses and JST already clear. "Max" is how much you could clear by taking every Sophia course that counts. "You pay" is tuition left after TA ($4,500 per year) for the finish time you picked.</p>
+      <p><b>WGU</b> charges a flat price per 6-month term, so finishing fast is cheap. <b>UMGC</b> and <b>Embry-Riddle</b> charge $250 per credit, which TA covers fully, but TA only pays for about 18 credits a year.</p>
+      <p><b>UMGC</b> is an official Sophia partner and takes up to 90 transfer credits. <b>Embry-Riddle</b> isn't a Sophia partner, so its Sophia numbers are estimates. Get a free unofficial evaluation from any school before you pick.</p>
     </div>
   </section>
 
-  <p class="small muted">
-    Progress is saved automatically in this browser (localStorage) — nothing leaves your device.
-    To move progress to another device: <button id="exportBtn">Copy backup</button>
-    <button id="importBtn">Restore backup</button>
-    <button id="resetBtn" class="danger">Reset this plan's progress</button>
-  </p>
+  <!-- ===================== TAB 4: MONEY ===================== -->
+  <section id="tab-money" hidden>
+    <div class="card">
+      <h2>Cost for your plan</h2>
+      <div id="costBox"></div>
+      <div class="row" style="margin-top:10px">
+        <label class="field">Pell Grant per year (after FAFSA)<br><input type="number" id="pell" min="0" max="7395" step="100"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Deadlines</h2>
+      <div id="deadlines"></div>
+    </div>
+
+    <div class="card">
+      <h2>Scholarships &amp; grants</h2>
+      <p class="small muted">All of these stack with TA. Set a status as you go; money marked "Won" comes off your cost above. One 500-word essay about you and your plan works for most of them.</p>
+      <div id="apps"></div>
+    </div>
+  </section>
+
+  <footer>
+    Saved in this browser only.
+    <button class="btn" id="exportBtn">Copy backup</button>
+    <button class="btn" id="importBtn">Restore backup</button>
+    <p>Estimates for planning, not official. Confirm with each school before paying for anything.</p>
+  </footer>
 </main>
 
 <script>
 /* ==============================================================
-   1. DATA — the built-in speedrun plan(s). Edit courses here.
-   Each course: id (unique), name, maps (what it clears), cu, tip.
+   1. DEGREE PLANS
+   school:      "WGU" (flat price per 6-month term) or a per-credit school
+   total:       credits (CU at WGU) the degree needs
+   approx:      true when the total isn't confirmed from an official page
+   term:        WGU price per 6-month term
+   jstMax:      most JST credit the degree can realistically use
+   maxTransfer: most credit you can bring in from outside
+   fit:         1–3 stars for how well it reads for a cloud/IT job
    ============================================================== */
-const BUILT_IN_PLANS = [
-{
-  id: "wgu-bscne",
-  school: "WGU",
-  degree: "BS Cloud & Network Engineering",
-  note: "The degree that replaced BS Cloud Computing (renamed 2026). General track · 34 courses · 109 CUs · ~$4,125 per 6-month term, as many courses as you can pass.",
-  phases: [
-    {
-      title: "Phase 0 — Set up the run",
-      blurb: "Do this before spending a dollar. WGU narrowed Sophia transfers in March 2026 (gen-ed / lower-division only now), so verify every mapping first.",
-      items: [
-        { id: "s-pathway", name: "Pull the official BSCNE transfer pathway", maps: "wgu.edu/admissions/transfers + partners.wgu.edu", cu: 0, tip: "Confirm exactly which Sophia courses still articulate before buying a membership." },
-        { id: "s-counselor", name: "Talk to a WGU enrollment counselor", maps: "confirm admission + transfer evaluation", cu: 0, tip: "Admission needs HS diploma plus one of: 2.75+ HS GPA, college credit w/ 2.25+ GPA, an IT cert, or a prior degree." },
-        { id: "s-track", name: "Pick your track", maps: "General / AWS / Azure / Cisco", cu: 0, tip: "This tracker follows the General track. AWS/Azure swap in vendor cert courses." },
-        { id: "s-funding", name: "Line up funding (TA / FAFSA)", maps: "see 'Paying for it' below", cu: 0, tip: "If your employer or the military offers Tuition Assistance, start that paperwork now — it takes weeks." },
-        { id: "s-jst", name: "Send your JST to WGU (military)", maps: "jst.doded.mil — free official transcript", cu: 0, tip: "Joint Services Transcript: rate training and military schools carry ACE credit recommendations that can clear courses for $0. Send it with your other transcripts before your start date." },
-        { id: "s-clep", name: "Ask the education office about free CLEP/DSST", maps: "DANTES-funded exams on base", cu: 0, tip: "Active duty gets the first attempt at CLEP/DSST exams funded — each pass can clear a gen-ed for $0. Check which exams articulate to your WGU program before sitting one." }
-      ]
-    },
-    {
-      title: "Phase 💰 — Free money checklist",
-      blurb: "All of these are allowed alongside TA — WGU caps total aid at cost of attendance, but nothing here needs anyone's permission. One master essay powers every application.",
-      items: [
-        { id: "m-essay", name: "Write your one master essay (500 words)", maps: "reused for every application", cu: 0, tip: "Who you are, the speedrun plan, where the degree takes you. Write it once, tweak per application." },
-        { id: "m-vfw", name: "Apply: VFW Help A Hero — by Nov 15", maps: "up to $5,000 · stacks with TA", cu: 0, tip: "vfwfoundation.org → Help A Hero. Needs: statement of service (ask admin), proof of enrollment/acceptance, essay. E-5 and below eligible." },
-        { id: "m-fafsa", name: "File FAFSA on Oct 1", maps: "Pell up to $7,395/yr · stacks with TA", cu: 0, tip: "studentaid.gov, ~30 min with your LES/tax return. BAH/BAS mostly don't count as income — junior enlisted often get a partial grant. Never repaid." },
-        { id: "m-wgu", name: "Apply: WGU scholarship portal (90 days before start)", maps: "$3,000–$10,000 · stacks with TA", cu: 0, tip: "wgu.edu/scholarshipapplication. Active Duty award ($750/term) is the sure bet; compare tech and need-based awards — you get one WGU award, so pick the biggest you qualify for." },
-        { id: "m-tillman", name: "Apply: Pat Tillman — opens ~Dec", maps: "~$10,000 · stacks with TA", cu: 0, tip: "pattillmanfoundation.org. Confirm WGU counts as full-time when the cycle opens." },
-        { id: "m-spring", name: "Apply: AMVETS + AFCEA — spring 2027", maps: "$4,000 + $2,500 · stack with TA", cu: 0, tip: "AMVETS wants a command letter — that's a reference letter, not permission. AFCEA covers online STEM degrees." },
-        { id: "m-ccme", name: "Apply: CCME — cycle opens late 2026", maps: "$1,000 · stacks with TA", cu: 0, tip: "ccmeonline.org — confirm WGU is a member school before writing anything. The 2026 cycle is closed and 2027 dates aren't posted yet, so check back each month." },
-        { id: "m-fra", name: "Apply: FRA Education Foundation — by Apr 15", maps: "up to $5,000 · stacks with TA", cu: 0, tip: "fra.org → Education Foundation. Applications are open Sept 1 through Apr 15 every year and your own Navy service qualifies you — no FRA membership needed. Mailed packet: postmark by Apr 15 or it's not considered." },
-        { id: "m-caccomo", name: "Apply: AMVETS Dr. Caccomo Memorial — 2027 cycle", maps: "$12,000 × 2 winners · stacks with TA", cu: 0, tip: "amvets.org/caccomo-scholarship — open to active duty, not just veterans. Needs a commanding officer letter in place of discharge papers, plus FAFSA copy, 1040, transcripts, and a resume. Dates post on the AMVETS application portal." },
-        { id: "m-sweep", name: "Each term: sweep bold.org + scholarships.com", maps: "$500–$1,000 wins · stack with TA", cu: 0, tip: "Filter military + IT/computer science. Small awards go unclaimed because nobody applies — your essay is already written." },
-        { id: "m-zombie", name: "Oddball: Unigo Zombie Apocalypse — by Oct 31", maps: "$2,000 · 250 words", cu: 0, tip: "unigo.com — write a 250-word zombie escape plan. Open to any enrolled student 14+, online included. Their Superpower contest ($2,500) runs to Mar 31." },
-        { id: "m-afsa", name: "Oddball: AFSA Second Chance — by Aug 31 yearly", maps: "$1,000 × 5 winners", cu: 0, tip: "afsascholarship.org/secondchance — read a short fire-sprinkler article, answer an open-book quiz. Explicitly open to adult learners." },
-        { id: "m-card", name: "Oddball: Create-A-Greeting-Card — by Mar 8", maps: "$10,000 · design a card", cu: 0, tip: "gallerycollection.com — submit a card design (photo/art/graphic). Anyone 14+ enrolled anywhere. Part popularity vote, so rally shipmates." },
-        { id: "m-noessay", name: "No-essay lottos: Niche + Bold.org monthlies", maps: "$2,000–$25,000 · 2-min entries", cu: 0, tip: "Real payouts, lottery odds, and they sell your contact info — enter with a throwaway email, never your .mil or main address. Skip the myths: left-handed, tall-club, potato, and Klingon scholarships are dead or don't apply to you." },
-        { id: "m-easy", name: "Monthly 10-minute easy-money circuit", maps: "$2,000–$25,000 · lottery odds · stacks with TA", cu: 0, tip: "First of each month, re-enter the no-essay pools with your throwaway email: Niche ($2k–$25k), Bold.org (Sallie Mae $2k, SoFi $2.5k), Scholarships360 ($10k). Ten minutes total, zero essays, real winners every month — just never use your .mil or main email." },
-        { id: "m-finaid", name: "Tell WGU financial aid about every win", maps: "keeps the stack legal", cu: 0, tip: "Report outside scholarships to WGU. Total aid caps at cost of attendance — extra reduces your bill to $0; money beyond tuition/fees can be taxable." }
-      ]
-    },
-    {
-      title: "Phase 1 — Sophia.org (before you enroll)",
-      blurb: "$99/month, self-paced, open-book. Grind these before your WGU start date — each one is a WGU course you never have to take. A motivated month or two can clear all of them. ⚠ = mapping likely but unconfirmed post-2026 — verify before buying.",
-      items: [
-        { id: "so-it",    name: "Introduction to Information Technology", maps: "Introduction to IT", cu: 3, tip: "Easy first win — most people finish in days." },
-        { id: "so-eng",   name: "English Composition I", maps: "Composition: Successful Self-Expression", cu: 3 },
-        { id: "so-stats", name: "Introduction to Statistics", maps: "Applied Probability and Statistics", cu: 3 },
-        { id: "so-alg",   name: "College Algebra", maps: "Applied Algebra", cu: 3 },
-        { id: "so-sci",   name: "Environmental Science (or Human Bio / Chemistry)", maps: "Integrated Physical Sciences", cu: 3 },
-        { id: "so-db",    name: "Introduction to Relational Databases", maps: "Data Management – Foundations", cu: 3 },
-        { id: "so-mgmt",  name: "Principles of Management", maps: "IT Leadership Foundations", cu: 3 },
-        { id: "so-hist",  name: "US History I ⚠", maps: "US History: Stories of American Democracy", cu: 3, tip: "Verify this one with WGU before taking it." },
-        { id: "so-py",    name: "Introduction to Python Programming ⚠", maps: "Foundations of Programming (Python)", cu: 3, tip: "Articulated to WGU's old Python course — confirm it maps to the BSCNE version." }
-      ]
-    },
-    {
-      title: "Phase 2 — WGU term 1: quick wins",
-      blurb: "Enroll, then front-load the easy gen-eds and short courses to hit On-Time Progress (12 CUs) fast — after that your mentor can keep adding courses to the same flat-rate term.",
-      items: [
-        { id: "w-vc",   name: "Version Control", cu: 1, tip: "1 CU — many finish it in a weekend." },
-        { id: "w-eth",  name: "Ethics in Technology", cu: 3 },
-        { id: "w-tc",   name: "Technical Communication", cu: 3 },
-        { id: "w-hfw",  name: "Health, Fitness, and Wellness", cu: 4 },
-        { id: "w-sys",  name: "Introduction to Systems Thinking and Applications", cu: 3 },
-        { id: "w-vis",  name: "Influential Communication through Visual Design and Storytelling", cu: 3 },
-        { id: "w-itil", name: "Business of IT – Applications", maps: "ITIL 4 Foundation cert", cu: 4 }
-      ]
-    },
-    {
-      title: "Phase 3 — Cert courses (voucher included)",
-      blurb: "These courses ARE the cert exams — pass the cert, pass the course, and WGU pays for the voucher. Six resume-ready certs on the way to the degree.",
-      items: [
-        { id: "w-aplus1", name: "IT Foundations", maps: "CompTIA A+ Core 1", cu: 4 },
-        { id: "w-aplus2", name: "IT Applications", maps: "CompTIA A+ Core 2", cu: 4 },
-        { id: "w-linux",  name: "Linux Foundations", maps: "LPI Linux Essentials", cu: 3 },
-        { id: "w-net",    name: "Networks", maps: "CompTIA Network+", cu: 4 },
-        { id: "w-sec",    name: "Network and Security – Applications", maps: "CompTIA Security+", cu: 4 },
-        { id: "w-cloud",  name: "Cloud Applications", maps: "CompTIA Cloud+", cu: 3 }
-      ]
-    },
-    {
-      title: "Phase 4 — Cloud & network core",
-      blurb: "The meat of the degree — upper-division work that must be done at WGU. Keep the mentor-approved acceleration going.",
-      items: [
-        { id: "w-nsf",  name: "Network and Security – Foundations", cu: 3 },
-        { id: "w-nat",  name: "Network Analytics and Troubleshooting", cu: 3 },
-        { id: "w-tele", name: "Telecomm and Wireless Communications", cu: 3 },
-        { id: "w-pyit", name: "Python for IT Automation", cu: 3 },
-        { id: "w-sdn",  name: "Software Defined Networking", cu: 3 },
-        { id: "w-nad",  name: "Network Automation and Deployment", cu: 3 },
-        { id: "w-cnsm", name: "Cloud and Network Security Models", cu: 4 },
-        { id: "w-ai",   name: "AI for IT Automation and Security", cu: 3 },
-        { id: "w-virt", name: "Virtualization and IaaS", cu: 3 },
-        { id: "w-iot",  name: "Internet of Things (IoT) and Infrastructure", cu: 3 },
-        { id: "w-hyb",  name: "Hybrid Cloud Infrastructure and Orchestration", cu: 4 }
-      ]
-    },
-    {
-      title: "Phase 5 — Finish line",
-      blurb: "",
-      items: [
-        { id: "w-cap", name: "BSCNE Capstone Project", cu: 4, tip: "Done. Walk at commencement, update the resume." }
-      ]
-    }
-  ],
-  guideHtml: `
-    <h2>How the speedrun works</h2>
-    <div class="box accent">
-      <ul>
-        <li><b>1. Clear cheap credits first.</b> Sophia is $99/month and self-paced — every gen-ed you finish there is a WGU course you skip. Finish <i>everything</i> at Sophia <b>before your WGU start date</b>; outside credit generally can't be added after you start.</li>
-        <li><b>2. Enroll at WGU.</b> Tuition is flat per 6-month term (~$3,925 + $200 fees) no matter how many courses you pass — the whole speedrun is "pass more courses per term, pay for fewer terms."</li>
-        <li><b>3. Accelerate.</b> Hit On-Time Progress (12 CUs) early in the term, then ask your program mentor to add courses one at a time. Cert courses are cleared by passing the cert exam itself.</li>
-        <li><b>4. Realistic pace:</b> heavy accelerators finish in 1–2 terms after a strong Sophia phase; a relaxed-but-efficient run is 3–4 terms. Every term saved is ~$4,125 saved.</li>
-      </ul>
-    </div>
+const PLANS = [
+  { id: "wgu-cne",  school: "WGU", name: "Cloud & Network Engineering", total: 109, term: 4125, jstMax: 4, maxTransfer: 109, fit: 3,
+    note: "Cloud degree with 7 certs included (A+, Network+, Security+, Cloud+, Linux, ITIL).", url: "https://www.wgu.edu/online-it-degrees/cloud-network-engineering-bachelors-program.html" },
+  { id: "wgu-it",   school: "WGU", name: "Information Technology", total: 120, approx: true, term: 4125, jstMax: 0, maxTransfer: 120, fit: 3,
+    note: "Broad IT degree with certs built in.", url: "https://www.wgu.edu/online-it-degrees/information-technology-bachelors-program.html" },
+  { id: "wgu-csia", school: "WGU", name: "Cybersecurity & Information Assurance", total: 120, approx: true, term: 4625, jstMax: 0, maxTransfer: 120, fit: 3,
+    note: "Security degree packed with certs. Higher term price.", url: "https://www.wgu.edu/online-it-degrees/cybersecurity-information-assurance-bachelors-program.html" },
+  { id: "wgu-swe",  school: "WGU", name: "Software Engineering", total: 120, approx: true, term: 4325, jstMax: 0, maxTransfer: 120, fit: 2,
+    note: "Coding-heavy. Few Sophia courses count.", url: "https://www.wgu.edu/online-it-degrees/software-engineering-bachelors-program.html" },
+  { id: "wgu-mgmt", school: "WGU", name: "Business Management", total: 120, approx: true, term: 4050, jstMax: 0, maxTransfer: 120, fit: 1,
+    note: "Business degree. Many business Sophia courses count.", url: "https://www.wgu.edu/online-business-degrees/business-management-bachelors-program.html" },
 
-    <h2>The math — three ways this run can go</h2>
-    <div class="box">
-      <p class="small muted">Same degree either way — the only variable is how many CUs you clear per flat-rate term. Costs assume ~$4,125/term + ~$200–$300 of Sophia.</p>
-      <table>
-        <tr><th>Pace</th><th>What it looks like</th><th>Time</th><th>Out of pocket*</th></tr>
-        <tr><td><b>Cruise</b></td><td>Skip Sophia, ~28 CUs/term at WGU</td><td>~2 years (4 terms)</td><td>~$16,500</td></tr>
-        <tr><td><b>Solid speedrun</b></td><td>2 months of Sophia first, then 2 focused terms (~41 CUs each)</td><td>~14 months</td><td>~$8,550</td></tr>
-        <tr class="hot"><td>All-out</td><td>Max Sophia + JST/CLEP transfer, then one monster term living in the coursework</td><td>~8–9 months</td><td>~$4,400</td></tr>
-      </table>
-      <p class="small muted">*Before TA. With military Tuition Assistance covering terms, the fast paths can land near <b>$0–$300 total</b>. Rough estimates — your transfer evaluation sets the real number.</p>
-    </div>
+  { id: "umgc-cyt", school: "UMGC", name: "Cybersecurity Technology", total: 120, jstMax: 30, maxTransfer: 90, fit: 3,
+    note: "Hands-on security, includes cloud courses. Official Sophia partner.", url: "https://www.umgc.edu/online-degrees/bachelors/cybersecurity-technology" },
+  { id: "umgc-cyo", school: "UMGC", name: "Cyber Operations", total: 120, jstMax: 33, maxTransfer: 90, fit: 3,
+    note: "Networking and defense focus. 46 elective credits.", url: "https://www.umgc.edu/online-degrees/bachelors/cyber-operations" },
+  { id: "umgc-cis", school: "UMGC", name: "Computer Information Systems", total: 120, jstMax: 33, maxTransfer: 90, fit: 2,
+    note: "IT degree with 43 elective credits for JST.", url: "https://www.umgc.edu/online-degrees/bachelors/computer-information-systems" },
+  { id: "umgc-cmp", school: "UMGC", name: "Cybersecurity Management & Policy", total: 120, jstMax: 33, maxTransfer: 90, fit: 2,
+    note: "Security leadership, less hands-on.", url: "https://www.umgc.edu/online-degrees/bachelors/cybersecurity-management-policy" },
+  { id: "umgc-cs",  school: "UMGC", name: "Computer Science", total: 120, jstMax: 30, maxTransfer: 90, fit: 2,
+    note: "Math-heavy programming degree.", url: "https://www.umgc.edu/online-degrees/bachelors/computer-science" },
+  { id: "umgc-ds",  school: "UMGC", name: "Data Science", total: 120, jstMax: 33, maxTransfer: 90, fit: 2,
+    note: "Statistics and data. Your Stats course hits a required course.", url: "https://www.umgc.edu/online-degrees/bachelors/data-science" },
+  { id: "umgc-bam", school: "UMGC", name: "Business Administration & Management", total: 120, jstMax: 28, maxTransfer: 90, fit: 1,
+    note: "Business degree. Lots of Sophia business courses count.", url: "https://www.umgc.edu/online-degrees/bachelors/business-administration-management" },
+  { id: "umgc-hls", school: "UMGC", name: "Homeland Security", total: 120, jstMax: 33, maxTransfer: 90, fit: 1,
+    note: "Security/emergency management. Good fit for military experience.", url: "https://www.umgc.edu/online-degrees/bachelors/homeland-security" },
+  { id: "umgc-gs",  school: "UMGC", name: "General Studies", total: 120, jstMax: 33, maxTransfer: 90, fit: 1,
+    note: "Takes the most transfer credit of any plan (49 electives). Generic on a resume.", url: "https://www.umgc.edu/online-degrees/bachelors/general-studies" },
 
-    <h2>What's waiting at the finish line</h2>
-    <div class="box accent">
-      <ul>
-        <li><b>A bachelor's degree + 7 industry certs</b> in one shot: CompTIA A+ (×2 exams), Network+, Security+, Cloud+, Linux Essentials, and ITIL 4 — all voucher-paid. The certs alone are resume-ready before you even graduate.</li>
-        <li><b>Roles it targets:</b> cloud support / cloud engineer, network engineer, systems administrator, NOC/infrastructure roles. Typical U.S. ranges: entry IT $50–70k, cloud/network engineer $85–120k+ with a couple years' experience (varies a lot by market and clearance).</li>
-        <li><b>While still serving:</b> a completed degree strengthens evals and opens commissioning paths (e.g., OCS/STA-21-type programs), and Security+ satisfies common DoD 8570/8140 role requirements.</li>
-        <li><b>Clearance + certs + degree</b> is a strong combo for cleared contractor roles after separation, which often pay above the civilian ranges above.</li>
-        <li><b>Momentum option:</b> WGU's IT master's programs take this degree directly, and an accelerated bachelor's leaves GI Bill untouched to fund one later.</li>
-      </ul>
-    </div>
-
-    <h2>Scholarship game plan — the free-money calendar</h2>
-    <div class="box accent">
-      <p class="small muted">No approvals, no side jobs — just applications. Write ONE strong 500-word personal statement (who you are, the speedrun plan, where the degree takes you) and reuse it for every application below. Most people never apply; showing up is half the win.</p>
-      <ul>
-        <li><b>This month (before Nov 15):</b> apply to <a href="https://vfwfoundation.org/programs/military-and-family-support/help-a-hero-scholarship/">VFW Help A Hero</a> ($5,000, E-5 and below). Needs: statement of service (admin office prints one), transcript/enrollment proof, essay.</li>
-        <li><b>October 1:</b> file the <a href="https://studentaid.gov/">FAFSA</a> the day the new cycle opens (takes ~30 min with your LES/W-2). BAH/BAS mostly don't count as income, so junior enlisted often draw a partial Pell — up to $7,395/yr, and it's a grant, never repaid.</li>
-        <li><b>~December:</b> <a href="https://pattillmanfoundation.org/apply/">Pat Tillman Scholarship</a> opens (~$10,000, active duty eligible) — confirm WGU enrollment counts as full-time when the cycle opens.</li>
-        <li><b>90 days before your WGU start:</b> apply in the <a href="https://www.wgu.edu/financial-aid-tuition/scholarships.html">WGU scholarship portal</a> — Active Duty/Military Appreciation ($3,000) is the sure bet, but compare the tech ones ($3,000–$6,000) and bigger need-based awards (up to $10,000) since you only get one WGU award.</li>
-        <li><b>Spring 2027:</b> <a href="https://www.amvets.org/scholarships">AMVETS</a> ($4,000, needs a command letter — that's a reference letter, not permission) and <a href="https://www.afcea.org/afcea-educational-foundation/scholarships">AFCEA STEM</a> ($2,500) reopen; <a href="https://www.ccmeonline.org/scholarships">CCME</a> ($1,000) cycles late 2026.</li>
-        <li><b>Every term:</b> re-check the WGU portal and scholarships.com / bold.org filters for "military" + "computer science/IT" — small $500–$1,000 awards go unclaimed constantly because nobody applies.</li>
-      </ul>
-      <p class="small muted">Realistic stack if you apply to everything: TA + WGU award + Pell + one outside scholarship ≈ the whole degree free with money left toward fees and gear. Plug your wins into the calculator below.</p>
-    </div>
-
-    <h2>More ways to shave the run</h2>
-    <div class="box accent">
-      <ul>
-        <li><b>JST / military credit (free).</b> Your Joint Services Transcript (jst.doded.mil) lists ACE credit recommendations from boot camp, A-school, and rate training. WGU evaluates it like any transcript — every course it clears is free CUs. Send it before enrolling; it costs nothing.</li>
-        <li><b>CLEP &amp; DSST exams (free while active duty).</b> DANTES funds your first attempt, and many bases have on-site testing. A 90-minute exam can clear the same gen-ed Sophia charges a month of membership for. Verify which exams map to your program first — articulations are narrower than they used to be.</li>
-        <li><b>Certs before enrolling.</b> An IT cert you already hold (A+, Network+, Security+…) both satisfies WGU admission <i>and</i> transfers in to clear its matching course. If you can self-study one cheaply before your start date, that's 3–4 CUs gone — though remember WGU pays the vouchers once you're enrolled, so only pre-pay if the time saved is worth it.</li>
-        <li><b>In-term tactics.</b> Take each course's pre-assessment on day one — if you're close, schedule the real exam that week instead of grinding the material. Hit 12 CUs fast to unlock acceleration, request the next course the same day you pass, and use the community course guides on r/WGU for what each exam actually tests.</li>
-        <li><b>Never pay for two slow terms.</b> The whole game is CUs per term: one maxed-out term beats two casual ones by ~$4,125. If life gets busy, WGU also allows a term break between terms rather than paying for a term you'll coast through.</li>
-      </ul>
-    </div>
-
-    <h2>Paying for it — the TA route (military Tuition Assistance)</h2>
-    <div class="box">
-      <ul>
-        <li><b>WGU takes DoD TA.</b> TA must be approved <i>before</i> the term starts, and approval takes weeks — start at your base education office and your branch's portal (Navy: MyNavy Education / Navy College; Army: ArmyIgnitED; AF/SF: AFVEC) well ahead of your WGU start date.</li>
-        <li><b>Mind the caps.</b> TA has per-credit-hour and per-fiscal-year dollar caps that change with policy — ask the education office for the current numbers and how they handle WGU's flat-rate term. If a fast run would blow past the yearly cap, time your two terms to straddle the fiscal year (Oct 1) so each term draws from a different year's TA.</li>
-        <li><b>Sophia isn't TA-covered</b> — but it's $99–$299 total, the cheapest part of the whole run, and you can grind it while the TA paperwork processes.</li>
-        <li><b>Save the GI Bill.</b> If TA can carry this degree while you're in, your GI Bill stays intact for a master's or certs after you get out. FAFSA/Pell and WGU scholarships (wgu.edu/financial-aid) can cover any gap TA doesn't.</li>
-      </ul>
-    </div>
-
-    <h2>Free study arsenal</h2>
-    <div class="box">
-      <ul>
-        <li><b>Professor Messer (YouTube, free):</b> complete A+, Network+, and Security+ video courses — the default study path for WGU's cert courses. Watch on 1.5×.</li>
-        <li><b>Jason Dion practice exams (Udemy, ~$15 on sale):</b> when you're passing Dion practice tests at 85%+, schedule the real cert exam. Cheapest confidence money can buy.</li>
-        <li><b>r/WGU + r/WGU_CompSci:</b> search "[course name] pass guide" — nearly every WGU course has a community write-up of exactly what the assessment covers.</li>
-        <li><b>Take the pre-assessment first, always:</b> WGU gives one per course — it tells you the exam's shape and often that you already know enough to test now.</li>
-        <li><b>Anki (free flashcards):</b> shared decks exist for every CompTIA exam — 20 minutes a day on the smoke deck beats weekend cramming.</li>
-        <li><b>AWS/Azure free tiers + a homelab:</b> free accounts cover everything the cloud courses touch, and what you build doubles as your portfolio.</li>
-      </ul>
-    </div>
-
-    <h2>Heads-up (2026 changes)</h2>
-    <div class="box" style="background: var(--warn-soft)">
-      <ul>
-        <li>WGU <b>renamed BS Cloud Computing to BS Cloud &amp; Network Engineering</b> and split it into General / AWS / Azure / Cisco tracks. This tracker follows the verified General-track course list (catalog 202608).</li>
-        <li>In <b>March 2026 WGU narrowed Sophia articulation</b>: gen-ed and lower-division courses still transfer, but upper-division courses must now be done at WGU. Older Reddit/YouTube "transfer 60+ credits" guides are out of date.</li>
-        <li>Course mappings change constantly — <b>confirm each Sophia course against WGU's official transfer pathway before paying</b>. This page is a planning tool, not an official source.</li>
-      </ul>
-    </div>`
-}
+  { id: "erau-aero", school: "Embry-Riddle", name: "Aeronautics", total: 121, jstMax: 33, maxTransfer: 90, fit: 1,
+    note: "Built to take aviation training like ABH credit. Sophia isn't a partner, so it's case by case.", url: "https://erau.edu/degrees/bachelor/aeronautics" },
+  { id: "erau-es",   school: "Embry-Riddle", name: "Emergency Services", total: 120, jstMax: 33, maxTransfer: 90, fit: 1,
+    note: "Your firefighting credit maps straight in.", url: "https://erau.edu/degrees/bachelor/emergency-services" },
+  { id: "erau-tm",   school: "Embry-Riddle", name: "Technical Management", total: 120, jstMax: 24, maxTransfer: 90, fit: 2,
+    note: "Management with a technical angle. More JST counts once you make E-5.", url: "https://erau.edu/degrees" },
+  { id: "erau-cis",  school: "Embry-Riddle", name: "Cyber Intelligence & Security", total: 120, jstMax: 9, maxTransfer: 90, fit: 3,
+    note: "Cyber degree. ABH credit mostly doesn't fit.", url: "https://erau.edu/degrees/bachelor/cyber-intelligence-security" },
+  { id: "erau-aba",  school: "Embry-Riddle", name: "Aviation Business Administration", total: 120, jstMax: 18, maxTransfer: 90, fit: 1,
+    note: "Business degree with an aviation angle.", url: "https://erau.edu/degrees/bachelor/aviation-business-administration" }
 ];
 
 /* ==============================================================
-   2. STATE — everything the site remembers, in localStorage.
+   2. SOPHIA COURSES and what each one clears
+   umgc:  the UMGC course it transfers as (official Sophia partner list)
+   major: UMGC plans where it hits a REQUIRED major course
+   wgu:   [WGU course it clears, [WGU plans it counts in], confirmed?]
+   erau:  Embry-Riddle gen-ed bucket it would likely fill
+   Ids starting "so-" match the old site so saved progress carries over.
    ============================================================== */
-const KEY = "degree-speedrun-v1";
-let state = { selectedPlanId: null, progress: {}, customPlans: [] };
-try { Object.assign(state, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
-function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+const W_TECH = ["wgu-cne", "wgu-it", "wgu-csia"];
+const W_ALL  = ["wgu-cne", "wgu-it", "wgu-csia", "wgu-swe", "wgu-mgmt"];
 
-// One-time seed: Sophia courses finished before this tracker existed.
-// Runs once per browser (the "seeded1" flag), then normal saving takes over.
-if (!state.seeded1) {
-  state.seeded1 = true;
-  const p = new Set(state.progress["wgu-bscne"] || []);
-  ["so-eng", "so-stats", "so-it"].forEach(id => p.add(id));
-  state.progress["wgu-bscne"] = [...p];
-}
+const SOPHIA = [
+  { id: "so-eng",   name: "English Composition I",        cr: 3, umgc: "WRTG 111", wgu: ["Composition: Successful Self-Expression", W_ALL, true], erau: "comm" },
+  { id: "so-stats", name: "Introduction to Statistics",   cr: 3, umgc: "STAT 200", major: ["umgc-ds", "umgc-cs"], wgu: ["Applied Probability and Statistics", W_TECH, true], erau: "math" },
+  { id: "so-it",    name: "Introduction to Information Technology", cr: 3, umgc: "IFSM 201", major: ["umgc-cis"], wgu: ["Introduction to IT", ["wgu-cne", "wgu-it", "wgu-csia", "wgu-swe"], true], erau: "cs" },
+  { id: "so-alg",   name: "College Algebra",              cr: 3, umgc: "MATH 107", wgu: ["Applied Algebra", W_TECH, true], erau: "math" },
+  { id: "so-sci",   name: "Environmental Science",        cr: 3, umgc: "BIOL 211", wgu: ["Integrated Physical Sciences", W_TECH, true], erau: "sci" },
+  { id: "so-db",    name: "Introduction to Relational Databases", cr: 3, umgc: "CMIS 320", wgu: ["Data Management – Foundations", ["wgu-cne", "wgu-it", "wgu-csia", "wgu-swe"], true], erau: "elec" },
+  { id: "so-py",    name: "Introduction to Python Programming", cr: 3, umgc: "CMIS 102", wgu: ["Foundations of Programming (Python)", ["wgu-cne"], false], erau: "cs" },
+  { id: "so-mgmt",  name: "Principles of Management",     cr: 3, umgc: "BMGT 364", major: ["umgc-bam"], wgu: ["IT Leadership Foundations", ["wgu-cne", "wgu-it"], false], erau: "elec" },
+  { id: "so-hist",  name: "U.S. History I",               cr: 3, umgc: "HIST 156", wgu: ["US History: Stories of American Democracy", ["wgu-cne"], false], erau: "hss" },
+  { id: "so-net",   name: "Introduction to Networking",   cr: 3, umgc: "CMIT 265", major: ["umgc-cyt", "umgc-cmp", "umgc-cyo"], erau: "elec" },
+  { id: "so-eng2",  name: "English Composition II",       cr: 3, umgc: "WRTG 112", erau: "comm" },
+  { id: "so-speech",name: "Public Speaking",              cr: 3, umgc: "SPCH 100", wgu: ["Introduction to Communication", ["wgu-it", "wgu-csia", "wgu-mgmt"], false], erau: "comm" },
+  { id: "so-crit",  name: "Critical Thinking",            cr: 3, umgc: "PHIL 110", wgu: ["Critical Thinking: Reason and Evidence", ["wgu-it", "wgu-csia", "wgu-mgmt"], false], erau: "hss" },
+  { id: "so-java",  name: "Introduction to Java Programming", cr: 3, umgc: "CMIS 141", wgu: ["Scripting and Programming – Foundations", ["wgu-it", "wgu-swe"], false], erau: "cs" },
+  { id: "so-web",   name: "Introduction to Web Development", cr: 3, umgc: "CMST 385", wgu: ["Web Development Foundations", ["wgu-it", "wgu-swe"], false], erau: "elec" },
+  { id: "so-calc",  name: "Calculus I",                   cr: 4, umgc: "MATH 140", major: ["umgc-cs"], wgu: ["Calculus I", ["wgu-swe"], true], erau: "math" },
+  { id: "so-precalc", name: "Precalculus",                cr: 3, umgc: "MATH 115", erau: "math" },
+  { id: "so-bizdata", name: "Business Data Analytics",    cr: 3, umgc: "DATA 320", major: ["umgc-ds"], erau: "elec" },
+  { id: "so-pm",    name: "Project Management",           cr: 3, umgc: "BMGT 487", erau: "elec" },
+  { id: "so-lead",  name: "Principles of Leadership",     cr: 3, umgc: "BMGT 365", major: ["umgc-bam"], erau: "elec" },
+  { id: "so-bus",   name: "Introduction to Business",     cr: 3, umgc: "BMGT 110", major: ["umgc-bam"], erau: "elec" },
+  { id: "so-acct",  name: "Financial Accounting",         cr: 3, umgc: "ACCT 220", major: ["umgc-bam"], wgu: ["Principles of Accounting", ["wgu-mgmt"], false], erau: "elec" },
+  { id: "so-macro", name: "Macroeconomics",               cr: 3, umgc: "ECON 201", major: ["umgc-bam"], wgu: ["Macroeconomics", ["wgu-mgmt"], false], erau: "hss" },
+  { id: "so-micro", name: "Microeconomics",               cr: 3, umgc: "ECON 203", major: ["umgc-bam"], erau: "hss" },
+  { id: "so-psych", name: "Introduction to Psychology",   cr: 3, umgc: "PSYC 100", erau: "hss" },
+  { id: "so-soc",   name: "Introduction to Sociology",    cr: 3, umgc: "SOCY 100", wgu: ["Introduction to Sociology", ["wgu-mgmt"], true], erau: "hss" },
+  { id: "so-gov",   name: "U.S. Government",              cr: 3, umgc: "GVPT 170", erau: "hss" },
+  { id: "so-hist2", name: "U.S. History II",              cr: 3, umgc: "HIST 157", erau: "hss" },
+  { id: "so-bio",   name: "Human Biology",                cr: 3, umgc: "BIOL 160", wgu: ["Integrated Physical Sciences", W_TECH, true], erau: "sci" },
+  { id: "so-chem",  name: "Introduction to Chemistry",    cr: 3, umgc: "CHEM 121", erau: "sci" },
+  { id: "so-span",  name: "Spanish I",                    cr: 3, umgc: "SPAN 111", erau: "hss" },
+  { id: "so-ethics",name: "Introduction to Ethics",       cr: 3, umgc: "PHIL elective", erau: "hss" },
+  { id: "so-fin",   name: "Personal Finance",             cr: 3, umgc: "FINC 321", erau: "elec" }
+];
 
-function allPlans() { return BUILT_IN_PLANS.concat(state.customPlans); }
-function currentPlan() {
-  return allPlans().find(p => p.id === state.selectedPlanId) || allPlans()[0];
-}
-function doneSet(plan) { return new Set(state.progress[plan.id] || []); }
-function isCustom(plan) { return state.customPlans.includes(plan); }
+/* Embry-Riddle gen-ed buckets (credits each one can hold). */
+const ERAU_BUCKETS = { comm: 9, math: 6, cs: 3, sci: 6, hss: 12, elec: 12 };
+const ERAU_LABELS = { comm: "Communication gen-ed", math: "Math gen-ed", cs: "Computer science gen-ed",
+                      sci: "Science gen-ed", hss: "Humanities/social science gen-ed", elec: "Elective" };
 
 /* ==============================================================
-   3. RENDER
-   ============================================================== */
-const $ = id => document.getElementById(id);
-
-function render() {
-  const plan = currentPlan();
-  state.selectedPlanId = plan.id;
-
-  // plan dropdown
-  $("planSelect").innerHTML = allPlans().map(p =>
-    `<option value="${p.id}" ${p.id === plan.id ? "selected" : ""}>${esc(p.school)} — ${esc(p.degree)}</option>`
-  ).join("");
-
-  $("pageTitle").textContent = plan.school + " · " + plan.degree + " Speedrun";
-  $("pageSub").textContent = plan.note || "";
-  $("renamePlanBtn").hidden = $("deletePlanBtn").hidden = $("addPhaseBtn").hidden = !isCustom(plan);
-
-  // phases + courses
-  const done = doneSet(plan);
-  $("phases").innerHTML = plan.phases.map((ph, pi) => {
-    const doneCount = ph.items.filter(c => done.has(c.id)).length;
-    return `<section class="phase">
-      <span class="count">${doneCount}/${ph.items.length} done</span>
-      <h3>${esc(ph.title)}</h3>
-      ${ph.blurb ? `<p class="blurb muted small">${ph.blurb}</p>` : ""}
-      ${ph.items.map(c => `
-        <label class="course ${done.has(c.id) ? "done" : ""}">
-          <input type="checkbox" data-course="${c.id}" ${done.has(c.id) ? "checked" : ""}>
-          <span>
-            <span class="name">${esc(c.name)}</span>
-            ${c.maps ? `<span class="muted small"> → ${esc(c.maps)}</span>` : ""}
-            ${c.tip ? `<br><span class="muted small">${esc(c.tip)}</span>` : ""}
-          </span>
-          <span class="cu">${c.cu} CU</span>
-          ${isCustom(plan) ? `<button class="del" data-del="${c.id}" title="Remove course">✕</button>` : ""}
-        </label>`).join("")}
-      ${isCustom(plan) ? addFormHtml(pi) : ""}
-    </section>`;
-  }).join("");
-
-  // progress bar (weighted by CUs)
-  const all = plan.phases.flatMap(p => p.items);
-  const totalCu = all.reduce((s, c) => s + (+c.cu || 0), 0);
-  const doneCu = all.filter(c => done.has(c.id)).reduce((s, c) => s + (+c.cu || 0), 0);
-  const pct = totalCu ? Math.round(100 * doneCu / totalCu) : 0;
-  $("barFill").style.width = pct + "%";
-  $("progressText").textContent = `${doneCu} / ${totalCu} CU · ${pct}%`;
-
-  $("guide").innerHTML = plan.guideHtml || "";
-  collapsify($("guide"));
-  $("moneySec").hidden = plan.id !== "wgu-bscne";
-  updateDoNow();
-
-  // "Next up": the first unchecked item, so the site always names your next move
-  const next = all.find(c => !done.has(c.id));
-  $("nextUp").textContent = next ? "▶ Next up: " + next.name : "🎉 Everything checked — go walk at commencement.";
-  save();
-}
-
-function addFormHtml(pi) {
-  return `<form class="addForm" data-phase="${pi}">
-    <input class="wide" name="name" placeholder="Course name" required>
-    <input class="wide" name="maps" placeholder="Clears / maps to (optional)">
-    <input class="tiny" name="cu" type="number" min="0" step="1" placeholder="CU" value="3">
-    <button>Add course</button>
-  </form>`;
-}
-
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-
-/* ==============================================================
-   4. EVENTS
-   ============================================================== */
-$("planSelect").onchange = e => { state.selectedPlanId = e.target.value; render(); };
-
-// check / uncheck a course
-$("phases").addEventListener("change", e => {
-  const id = e.target.dataset.course;
-  if (!id) return;
-  const plan = currentPlan(), done = doneSet(plan);
-  e.target.checked ? done.add(id) : done.delete(id);
-  state.progress[plan.id] = [...done];
-  render();
-});
-
-// custom plans: delete a course / add a course
-$("phases").addEventListener("click", e => {
-  const id = e.target.dataset.del;
-  if (!id) return;
-  e.preventDefault();
-  const plan = currentPlan();
-  plan.phases.forEach(ph => ph.items = ph.items.filter(c => c.id !== id));
-  render();
-});
-$("phases").addEventListener("submit", e => {
-  e.preventDefault();
-  const f = e.target, plan = currentPlan();
-  const name = f.name.value.trim();
-  if (!name) return;
-  plan.phases[+f.dataset.phase].items.push({
-    id: "c" + Date.now(), name, maps: f.maps.value.trim(), cu: +f.cu.value || 0
-  });
-  render();
-});
-
-$("newPlanBtn").onclick = () => {
-  const school = prompt("School name? (e.g. WGU, SNHU, UMPI)");
-  if (!school) return;
-  const degree = prompt("Degree name? (e.g. BS Software Engineering)");
-  if (!degree) return;
-  const plan = {
-    id: "p" + Date.now(), school, degree,
-    note: "Custom plan — add phases and courses below.",
-    phases: [{ title: "Courses", blurb: "", items: [] }]
-  };
-  state.customPlans.push(plan);
-  state.selectedPlanId = plan.id;
-  render();
-};
-
-$("addPhaseBtn").onclick = () => {
-  const title = prompt("Phase title? (e.g. Phase 1 — Sophia)");
-  if (!title) return;
-  currentPlan().phases.push({ title, blurb: "", items: [] });
-  render();
-};
-
-$("renamePlanBtn").onclick = () => {
-  const plan = currentPlan();
-  plan.school = prompt("School:", plan.school) || plan.school;
-  plan.degree = prompt("Degree:", plan.degree) || plan.degree;
-  render();
-};
-
-$("deletePlanBtn").onclick = () => {
-  const plan = currentPlan();
-  if (!confirm(`Delete "${plan.school} — ${plan.degree}" and its progress?`)) return;
-  state.customPlans = state.customPlans.filter(p => p !== plan);
-  delete state.progress[plan.id];
-  state.selectedPlanId = null;
-  render();
-};
-
-// Backup / restore — lets progress move between devices via copy-paste.
-$("exportBtn").onclick = async () => {
-  const text = JSON.stringify(state);
-  try { await navigator.clipboard.writeText(text); alert("Backup copied to clipboard — paste it into 'Restore backup' on the other device."); }
-  catch (e) { prompt("Copy this backup text:", text); }
-};
-$("importBtn").onclick = () => {
-  const text = prompt("Paste a backup here (this replaces current progress):");
-  if (!text) return;
-  try { state = JSON.parse(text); render(); }
-  catch (e) { alert("That didn't look like a valid backup."); }
-};
-
-$("resetBtn").onclick = () => {
-  const plan = currentPlan();
-  if (!confirm("Uncheck everything in this plan?")) return;
-  delete state.progress[plan.id];
-  render();
-};
-
-/* ==============================================================
-   4b. READABILITY — every h2 in the guide/money areas becomes a
-   collapsible section. Action sections start open, reference
-   prose starts folded; your toggles are remembered per session.
-   ============================================================== */
-const OPEN_DEFAULT = new Set([
-  "How the speedrun works",
-  "Payout board — biggest first",
-  "Deadline radar",
-  "Application tracker",
-  "Out-of-pocket calculator",
-  "Compare schools & degree plans"
-]);
-const SEC_IDS = { "Compare schools & degree plans": "compare",
-                  "Payout board — biggest first": "payout", "Deadline radar": "radar",
-                  "Application tracker": "apps", "Out-of-pocket calculator": "calc" };
-const secOpen = {};   // per-session memory of which sections the user opened/closed
-
-function collapsify(root) {
-  root.querySelectorAll("h2").forEach(h2 => {
-    const title = h2.textContent;
-    const d = document.createElement("details");
-    d.className = "sec";
-    d.open = title in secOpen ? secOpen[title] : OPEN_DEFAULT.has(title);
-    if (SEC_IDS[title]) d.id = SEC_IDS[title];
-    const s = document.createElement("summary");
-    s.textContent = title;
-    d.appendChild(s);
-    h2.replaceWith(d);
-    while (d.nextSibling && d.nextSibling.tagName !== "H2") d.appendChild(d.nextSibling);
-    d.addEventListener("toggle", () => secOpen[title] = d.open);
-  });
-}
-
-// "Do these next": nearest deadline + next money move + next course move.
-function updateDoNow() {
-  const plan = currentPlan();
-  $("doNow").hidden = plan.id !== "wgu-bscne";
-  if ($("doNow").hidden || !window.DEADLINES_ARR) return;
-  const done = doneSet(plan);
-  const items = plan.phases.flatMap(p => p.items);
-  const money = items.find(c => c.id.startsWith("m-") && !done.has(c.id));
-  const course = items.find(c => !c.id.startsWith("m-") && !done.has(c.id));
-  const dl = window.DEADLINES_ARR
-    .map(([d, n]) => [Math.ceil((new Date(d + "T23:59") - Date.now()) / 864e5), n])
-    .filter(([days]) => days >= 0)[0];
-  $("doNow").innerHTML = `<b>🎯 Do these next</b><ul>` +
-    (dl ? `<li>⏰ <b>${dl[0]} days:</b> ${esc(dl[1])}</li>` : "") +
-    (money ? `<li>💵 ${esc(money.name)}</li>` : "") +
-    (course ? `<li>📚 ${esc(course.name)}</li>` : "") + `</ul>`;
-}
-
-render();
-collapsify($("moneySec"));
-collapsify($("compareSec"));
-
-/* ==============================================================
-   5. OUT-OF-POCKET CALCULATOR
-   Cost = terms x $4,125 + Sophia months x $99.
-   Per-year sources (TA, Pell) count once per fiscal year enrolled
-   (2 terms ~ 1 year). Values persist in localStorage via state.calc.
-   ============================================================== */
-const CALC_FIELDS = ["cTerms","cSophia","fTa","fTaAmt","fWgu","fVfw","fVfwAmt","fPell","fPellAmt","fOther","fOtherAmt"];
-const fmt = n => "$" + Math.round(n).toLocaleString();
-
-function calcMoney() {
-  const terms = +$("cTerms").value;
-  const years = Math.ceil(terms / 2);
-  const cost = terms * 4125 + (+$("cSophia").value || 0) * 99;
-  let fund = 0;
-  const lines = [];
-  const add = (label, v) => { fund += v; lines.push(`${label}: ${fmt(v)}`); };
-  if ($("fTa").checked)    add(`TA (${fmt(+$("fTaAmt").value || 0)}/yr × ${years} yr)`, (+$("fTaAmt").value || 0) * years);
-  if ($("fWgu").checked)   add(`WGU scholarship ($750 × ${Math.min(terms, 4)} terms)`, 750 * Math.min(terms, 4));
-  if ($("fVfw").checked)   add("VFW Help A Hero", +$("fVfwAmt").value || 0);
-  if ($("fPell").checked)  add(`Pell (${fmt(+$("fPellAmt").value || 0)}/yr × ${years} yr)`, (+$("fPellAmt").value || 0) * years);
-  if ($("fOther").checked) add("Other scholarships", +$("fOtherAmt").value || 0);
-  const net = Math.max(0, cost - fund);
-  $("calcOut").innerHTML = `
-    <div>Degree cost (${terms} term${terms > 1 ? "s" : ""} + Sophia): <b>${fmt(cost)}</b></div>
-    <div class="small muted">${lines.join(" · ") || "No funding selected"}</div>
-    <div>Funding: <b>${fmt(fund)}</b></div>
-    <div style="font-size:1.15rem; margin-top:6px">Your out of pocket: <b style="color:var(--good)">${fmt(net)}</b></div>
-    ${fund > cost ? `<div class="small muted">Funding above cost doesn't become cash — aid is capped at cost of attendance, and overages can be taxable.</div>` : ""}`;
-}
-
-// restore saved calculator values, then recalc on any change
-CALC_FIELDS.forEach(id => {
-  const el = $(id), saved = (state.calc || {})[id];
-  if (saved !== undefined) el.type === "checkbox" ? el.checked = saved : el.value = saved;
-});
-function persistCalc() {
-  state.calc = {};
-  CALC_FIELDS.forEach(id => state.calc[id] = $(id).type === "checkbox" ? $(id).checked : $(id).value);
-  save();
-  calcMoney();
-}
-$("moneySec").addEventListener("input", persistCalc);
-calcMoney();
-
-/* ==============================================================
-   7. APPLICATION TRACKER — one row per scholarship application:
-   link, due date, documents needed, and your status. Marking a
-   row "Won" auto-fills that money into the calculator.
+   3. MONEY DATA — the monthly scholarship refresh edits these two lists.
+   Never change an existing id: saved statuses are keyed on them.
    ============================================================== */
 const APPS = [
   { id: "fafsa",     name: "FAFSA → Pell Grant",            url: "https://studentaid.gov/", due: "opens Oct 1", docs: "LES / tax return · ~30 min", amt: 3000 },
@@ -783,175 +370,310 @@ const APPS = [
   { id: "amvets",    name: "AMVETS",                        url: "https://www.amvets.org/scholarships", due: "~Apr 2027", docs: "command reference letter · transcript · essay", amt: 4000 },
   { id: "afcea",     name: "AFCEA STEM",                    url: "https://www.afcea.org/afcea-educational-foundation/scholarships", due: "~May 2027", docs: "transcript · enrollment proof", amt: 2500 },
   { id: "afsa",      name: "AFSA Second Chance",            url: "https://www.afsascholarship.org/secondchance/", due: "Aug 31, 2027", docs: "open-book quiz — easiest on the list", amt: 1000 },
-  { id: "ccme",      name: "CCME",                          url: "https://www.ccmeonline.org/scholarships", due: "2027 cycle not posted yet", docs: "confirm WGU is a member school first", amt: 1000 },
+  { id: "ccme",      name: "CCME",                          url: "https://www.ccmeonline.org/scholarships", due: "2027 cycle not posted yet", docs: "confirm your school is a member first", amt: 1000 },
   { id: "fra",       name: "FRA Education Foundation",      url: "https://www.fra.org/fra/Web/Events_and_Programs/Fra_Education_Foundation_Scholarships/Web/Content/FRA_Education_Foundation.aspx", due: "Apr 15, 2027", docs: "own Navy service qualifies · postmark by Apr 15", amt: 5000 },
   { id: "caccomo",   name: "AMVETS Dr. Caccomo Memorial",   url: "https://www.amvets.org/caccomo-scholarship", due: "2027 cycle TBA", docs: "CO letter · FAFSA copy · 1040 · transcript · resume", amt: 12000 },
   { id: "noessay",   name: "Niche + Bold.org monthlies",    url: "https://bold.org/scholarships/by-type/no-essay-scholarships/", due: "monthly", docs: "2-min entries · throwaway email", amt: 2000 },
   { id: "s360",      name: "Scholarships360 $10k No Essay", url: "https://scholarships360.org/scholarships/", due: "monthly", docs: "free profile · explicitly open to adult learners", amt: 10000 },
   { id: "boldmo",    name: "Sallie Mae $2k + SoFi $2.5k monthlies", url: "https://bold.org/scholarships/by-type/no-essay-scholarships/", due: "monthly", docs: "2-min entries via Bold.org · throwaway email", amt: 2500 }
 ];
-const STATUSES = ["Not started", "In progress", "Applied", "Won", "No luck"];
-state.apps = state.apps || {};
 
-function wonAmt(id) { const a = state.apps[id] || {}; return a.status === "Won" ? +a.amt || 0 : 0; }
-
-// push wins into the matching calculator rows (others pool into "Other scholarships")
-function syncWins() {
-  if (wonAmt("vfw"))   { $("fVfw").checked = true;  $("fVfwAmt").value = wonAmt("vfw"); }
-  if (wonAmt("fafsa")) { $("fPell").checked = true; $("fPellAmt").value = wonAmt("fafsa"); }
-  if (wonAmt("wgu"))   { $("fWgu").checked = true; }
-  const other = ["tillman","zombie","superpower","card","amvets","afcea","afsa","ccme","noessay"]
-    .reduce((s, id) => s + wonAmt(id), 0);
-  if (other > 0) { $("fOther").checked = true; $("fOtherAmt").value = other; }
-  persistCalc();
-}
-
-function renderApps() {
-  const total = APPS.reduce((s, a) => s + wonAmt(a.id), 0);
-  $("appBox").innerHTML =
-    `<p class="small muted">Set the status as you go — everything saves, and "Won" money flows straight into the calculator below.</p>` +
-    APPS.map(a => {
-      const st = (state.apps[a.id] || {}).status || "Not started";
-      const amt = (state.apps[a.id] || {}).amt ?? a.amt;
-      return `<div class="course">
-        <span><span class="name"><a href="${a.url}" target="_blank" rel="noopener">${esc(a.name)}</a></span>
-          <span class="muted small">· ${esc(a.due)}</span><br>
-          <span class="muted small">${esc(a.docs)}</span></span>
-        <span style="flex:none; margin-left:auto; text-align:right">
-          <select data-app="${a.id}" class="st-${st.replace(" ", "-")}">${STATUSES.map(s => `<option ${s === st ? "selected" : ""}>${s}</option>`).join("")}</select>
-          ${st === "Won" ? `<br><label class="small">won $<input class="tiny" type="number" data-appamt="${a.id}" value="${amt}" style="font:inherit;padding:3px 5px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:70px"></label>` : ""}
-        </span>
-      </div>`;
-    }).join("") +
-    `<p><b>Won so far: ${fmt(total)}</b> <span class="muted small">of ${fmt(APPS.reduce((s, a) => s + a.amt, 0))} listed</span></p>`;
-}
-
-$("appBox").addEventListener("change", e => {
-  const id = e.target.dataset.app, amtId = e.target.dataset.appamt;
-  if (id) {
-    state.apps[id] = state.apps[id] || {};
-    state.apps[id].status = e.target.value;
-    if (e.target.value === "Won" && state.apps[id].amt === undefined)
-      state.apps[id].amt = APPS.find(a => a.id === id).amt;
-  } else if (amtId) {
-    state.apps[amtId] = state.apps[amtId] || {};
-    state.apps[amtId].amt = +e.target.value || 0;
-  } else return;
-  save();
-  renderApps();
-  syncWins();
-});
-renderApps();
-
-/* ==============================================================
-   6. DEADLINE RADAR — days left until each money deadline.
-   Computed live from today's date; past deadlines drop off.
-   ============================================================== */
 const DEADLINES = [
   ["2026-10-01", "FAFSA opens — file it that day (Pell up to $7,395/yr)"],
   ["2026-10-31", "Unigo Zombie Apocalypse essay ($2,000)"],
-  ["2026-11-15", "VFW Help A Hero ($5,000) — the big one"],
+  ["2026-11-15", "VFW Help A Hero ($5,000)"],
   ["2026-12-01", "Pat Tillman application opens (~$10,000)"],
   ["2027-03-08", "Create-A-Greeting-Card ($10,000)"],
   ["2027-03-31", "Unigo Superpower essay ($2,500)"],
-  ["2027-04-15", "FRA Education Foundation ($5,000) — open now, Navy service qualifies"],
+  ["2027-04-15", "FRA Education Foundation ($5,000)"],
   ["2027-08-31", "AFSA Second Chance ($1,000)"]
 ];
-$("deadlineBox").innerHTML = DEADLINES
-  .map(([date, name]) => [Math.ceil((new Date(date + "T23:59") - Date.now()) / 864e5), date, name])
-  .filter(([days]) => days >= 0)
-  .map(([days, date, name]) => `
-    <div class="course">
-      <span><span class="name">${esc(name)}</span> <span class="muted small">${date}</span></span>
-      <span class="cu" style="${days <= 30 ? "color:#dc2626;border-color:#dc2626;font-weight:700" : ""}">${days}d left</span>
-    </div>`)
-  .join("") || '<p class="muted">No upcoming deadlines on the radar.</p>';
-window.DEADLINES_ARR = DEADLINES;
-updateDoNow();
+
+const TA_PER_YEAR = 4500, PER_CREDIT = 250, CU_PER_TERM = 40;
 
 /* ==============================================================
-   8. SCHOOL COMPARISON — estimates researched Sept 2026.
-   total:     credits the degree needs
-   sophia:    how many of the 9 completed Sophia credits count
-   jstMax:    most JST credit the degree can realistically absorb
-   floorMax:  credits still left if you max out Sophia/CLEP first
-              (limited by transfer caps / residency rules)
-   sophiaMo:  months of Sophia ($99/mo) the "max out" route takes
-   pay:       "flat" = WGU $4,125 per 6-month term; "credit" = $250/credit
-   fit:       how well the degree reads for a cloud/IT career
+   4. SAVED STATE (localStorage). Carries over progress from the
+   old version of the site the first time it loads.
    ============================================================== */
-const SCHOOL_PLANS = [
-  { school: "WGU", degree: "BS Cloud & Network Engineering", total: 109, sophia: 9, jstMax: 4, floorMax: 78, sophiaMo: 3, pay: "flat",
-    fit: "★★★ Cloud degree + 7 certs", note: "JST barely counts: only credit that matches a specific WGU course transfers." },
-  { school: "UMGC", degree: "BS General Studies", total: 120, sophia: 9, jstMax: 33, floorMax: 30, sophiaMo: 6, pay: "credit",
-    fit: "★ Generic degree", note: "Most transfer-friendly: 49 open elective credits. Official Sophia partner." },
-  { school: "UMGC", degree: "BS Computer Information Systems", total: 120, sophia: 9, jstMax: 33, floorMax: 45, sophiaMo: 5, pay: "credit",
-    fit: "★★ IT degree", note: "Your Sophia IT + Stats courses hit required courses. JST fills the 43 elective credits." },
-  { school: "UMGC", degree: "BS Cybersecurity Technology", total: 120, sophia: 9, jstMax: 24, floorMax: 50, sophiaMo: 5, pay: "credit",
-    fit: "★★★ Cyber/cloud security", note: "Bigger required major, so fewer electives for JST credit." },
-  { school: "Embry-Riddle", degree: "BS Aeronautics", total: 121, sophia: 9, jstMax: 33, floorMax: 61, sophiaMo: 4, pay: "credit",
-    fit: "★ Aviation degree", note: "Built to absorb aviation training like ABH credit. Sophia is a regular transcript review, not a 1:1 partner." },
-  { school: "Embry-Riddle", degree: "BS Emergency Services", total: 120, sophia: 9, jstMax: 33, floorMax: 60, sophiaMo: 4, pay: "credit",
-    fit: "★ Fire/emergency degree", note: "Your firefighting and fire suppression credit maps straight in." },
-  { school: "Embry-Riddle", degree: "BS Technical Management", total: 120, sophia: 9, jstMax: 24, floorMax: 60, sophiaMo: 4, pay: "credit",
-    fit: "★★ Management degree", note: "Safety and supervision credit fits. More JST applies once you make E-5." },
-  { school: "Embry-Riddle", degree: "BS Cyber Intelligence & Security", total: 120, sophia: 9, jstMax: 9, floorMax: 70, sophiaMo: 4, pay: "credit",
-    fit: "★★★ Cyber degree", note: "ABH credit mostly doesn't fit, so it becomes a few electives at best." }
-];
-const TA_PER_YEAR = 4500, PER_CREDIT = 250, WGU_TERM = 4125, CU_PER_TERM = 40;
+const KEY = "degree-speedrun-v2";
+let state = { plan: "wgu-cne", sophia: ["so-eng", "so-stats", "so-it"], jst: 24, years: 2, pell: 0,
+              steps: [], apps: {}, tab: "plan", filter: "mine", sort: "pay" };
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY));
+  if (saved) Object.assign(state, saved);
+  else {
+    const old = JSON.parse(localStorage.getItem("degree-speedrun-v1")) || {};
+    const oldDone = (old.progress || {})["wgu-bscne"] || [];
+    const oldSophia = oldDone.filter(id => id.startsWith("so-"));
+    if (oldSophia.length) state.sophia = [...new Set(state.sophia.concat(oldSophia))];
+    if (old.apps) state.apps = old.apps;
+  }
+} catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+/* ==============================================================
+   5. THE MATH
+   ============================================================== */
+const $ = id => document.getElementById(id);
+const fmt = n => "$" + Math.round(n).toLocaleString();
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const planById = id => PLANS.find(p => p.id === id) || PLANS[0];
+const unit = p => p.school === "WGU" ? "CU" : "credits";
+
+// What one Sophia course clears in one plan: { label, cr, kind: "yes"|"maybe", major } or null.
+function clearsIn(course, plan) {
+  if (plan.school === "WGU") {
+    if (!course.wgu || !course.wgu[1].includes(plan.id)) return null;
+    return { label: course.wgu[0], key: course.wgu[0], cr: 3, kind: course.wgu[2] ? "yes" : "maybe" };
+  }
+  if (plan.school === "UMGC") {
+    const major = (course.major || []).includes(plan.id);
+    return { label: course.umgc + (major ? " (required major course)" : ""), key: course.umgc, cr: course.cr, kind: "yes", major };
+  }
+  return { label: ERAU_LABELS[course.erau], key: course.id, bucket: course.erau, cr: course.cr, kind: "maybe" };
+}
+
+// Credits a set of Sophia courses clears in a plan (no double counting,
+// Embry-Riddle gen-ed buckets capped). Returns total + per-course detail.
+function sophiaCredit(plan, ids) {
+  const used = new Set(), buckets = {};
+  let total = 0;
+  const detail = {};
+  SOPHIA.filter(c => ids.includes(c.id)).forEach(c => {
+    const hit = clearsIn(c, plan);
+    if (!hit || used.has(hit.key)) return;
+    let cr = hit.cr;
+    if (hit.bucket) {
+      const room = ERAU_BUCKETS[hit.bucket] - (buckets[hit.bucket] || 0);
+      cr = Math.max(0, Math.min(cr, room));
+      if (!cr) return;
+      buckets[hit.bucket] = (buckets[hit.bucket] || 0) + cr;
+    }
+    used.add(hit.key);
+    total += cr;
+    detail[c.id] = cr;
+  });
+  return { total, detail };
+}
+
+// Full picture for one plan with the user's current numbers.
+function planStats(plan) {
+  const sophiaDone = sophiaCredit(plan, state.sophia).total;
+  const sophiaAll = sophiaCredit(plan, SOPHIA.map(c => c.id)).total;
+  const jst = Math.min(+state.jst || 0, plan.jstMax);
+  const done = Math.min(plan.maxTransfer, sophiaDone + jst);
+  const max = Math.min(plan.maxTransfer, sophiaAll + jst);
+  const left = plan.total - done;
+
+  let cost, pace;
+  if (plan.school === "WGU") {
+    const terms = Math.max(1, Math.ceil(left / CU_PER_TERM));
+    cost = terms * plan.term;
+    pace = `${terms} terms at 40 CU each`;
+  } else {
+    cost = left * PER_CREDIT;
+    pace = `~${(left / (TA_PER_YEAR / PER_CREDIT)).toFixed(1)} yrs if TA pays it all`;
+  }
+  const ta = Math.min(cost, TA_PER_YEAR * state.years);
+  return { sophiaDone, sophiaAll, jst, done, max, left, cost, ta, pace, pay: cost - ta };
+}
+
+/* ==============================================================
+   6. RENDER
+   ============================================================== */
+function renderPlanSelect() {
+  const groups = ["WGU", "UMGC", "Embry-Riddle"];
+  $("planSelect").innerHTML = groups.map(g =>
+    `<optgroup label="${g}">` +
+    PLANS.filter(p => p.school === g).map(p =>
+      `<option value="${p.id}" ${p.id === state.plan ? "selected" : ""}>${esc(p.school)} — ${esc(p.name)}</option>`).join("") +
+    `</optgroup>`).join("");
+}
+
+function renderPlan() {
+  const plan = planById(state.plan), s = planStats(plan);
+  $("planLine").textContent = `${plan.school} · ${plan.name} · ${s.done}/${plan.total} ${unit(plan)} knocked off`;
+  $("planNote").innerHTML = `${esc(plan.note)} ${plan.approx ? "Total credits are approximate." : ""} <a href="${plan.url}" target="_blank" rel="noopener">Program page ↗</a>`;
+  $("sDone").textContent = `${s.done} ${unit(plan)}`;
+  $("sLeft").textContent = `${s.left} ${unit(plan)}`;
+  $("sPay").textContent = fmt(s.pay);
+  $("barDone").style.width = (100 * s.done / plan.total) + "%";
+  $("barMore").style.width = (100 * (s.max - s.done) / plan.total) + "%";
+
+  // best untaken Sophia courses for this plan
+  const best = SOPHIA
+    .filter(c => !state.sophia.includes(c.id))
+    .map(c => ({ c, gain: sophiaCredit(plan, state.sophia.concat(c.id)).total - s.sophiaDone, hit: clearsIn(c, plan) }))
+    .filter(x => x.gain > 0)
+    .sort((a, b) => (b.hit.major ? 1 : 0) - (a.hit.major ? 1 : 0) || (b.hit.kind === "yes") - (a.hit.kind === "yes") || b.gain - a.gain)
+    .slice(0, 5);
+  $("bestList").innerHTML = best.length
+    ? best.map(x => `<div class="item"><div class="main"><div class="name">${esc(x.c.name)}</div>
+        <div class="sub">Clears ${esc(x.hit.label)}</div></div>
+        <div class="right"><span class="tag ${x.hit.major ? "major" : x.hit.kind}">+${x.gain} ${unit(plan)}</span></div></div>`).join("")
+    : `<p class="muted small">You've taken every Sophia course that counts for this plan. 🎉</p>`;
+
+  // steps
+  const STEPS = [
+    ["st-jst", "Get your JST", `Free at jst.doded.mil. Put your real credit number in "Your numbers" below.`],
+    ["st-sophia", "Finish the Sophia courses that count", `${Math.max(0, s.sophiaAll - s.sophiaDone)} more ${unit(plan)} are possible for this plan. Do these before you enroll.`],
+    ["st-eval", `Ask ${plan.school} for a free unofficial evaluation`, "Send your JST and Sophia transcript. Their answer replaces the estimates on this page."],
+    ["st-fafsa", "File the FAFSA", "Opens Oct 1 at studentaid.gov. Takes about 30 minutes."],
+    ["st-apply", `Apply to ${plan.school} and to scholarships`, "See the Money tab for what's open and when it's due."],
+    ["st-ta", "Get TA approved before your start date", "Through your base education office. Approval takes weeks."]
+  ];
+  $("steps").innerHTML = STEPS.map(([id, name, sub], i) => {
+    const done = state.steps.includes(id);
+    return `<li class="item ${done ? "done" : ""}"><input type="checkbox" data-step="${id}" ${done ? "checked" : ""}>
+      <div class="main"><div class="name">${i + 1}. ${esc(name)}</div><div class="sub">${esc(sub)}</div></div></li>`;
+  }).join("");
+
+  $("jst").value = state.jst;
+  $("years").value = state.years;
+}
+
+function renderSophia() {
+  const plan = planById(state.plan), s = planStats(plan);
+  const doneCount = state.sophia.length;
+  $("sophiaHead").textContent = `Sophia courses · ${doneCount} done`;
+  $("sophiaSummary").textContent =
+    `For ${plan.school} ${plan.name}: your courses clear ${s.sophiaDone} ${unit(plan)}. Taking every course that counts would clear ${s.sophiaAll}.`;
+  document.querySelectorAll("[data-filter]").forEach(b => b.classList.toggle("on", b.dataset.filter === state.filter));
+
+  const planCount = c => PLANS.filter(p => clearsIn(c, p)).length;
+  const detail = sophiaCredit(plan, state.sophia).detail;
+  const rows = SOPHIA
+    .map(c => ({ c, hit: clearsIn(c, plan), n: planCount(c), done: state.sophia.includes(c.id) }))
+    .filter(x => state.filter === "all" || x.hit)
+    .sort((a, b) => (a.done - b.done) || ((b.hit ? 1 : 0) - (a.hit ? 1 : 0)) || (b.n - a.n));
+
+  $("sophiaList").innerHTML = rows.map(({ c, hit, n, done }) => {
+    let tag;
+    if (!hit) tag = `<span class="tag no">Doesn't count here</span>`;
+    else if (done && detail[c.id] === undefined) tag = `<span class="tag no">Already covered</span>`;
+    else tag = `<span class="tag ${hit.major ? "major" : hit.kind}">${hit.kind === "maybe" ? "Likely · " : ""}${esc(hit.label)}</span>`;
+    return `<label class="item ${done ? "done" : ""}">
+      <input type="checkbox" data-sophia="${c.id}" ${done ? "checked" : ""}>
+      <div class="main"><div class="name">${esc(c.name)}</div>
+        <div class="sub">${c.cr} credits · counts in ${n} of ${PLANS.length} plans</div></div>
+      <div class="right">${tag}</div></label>`;
+  }).join("");
+}
 
 function renderCompare() {
-  const useSophia = $("xSophia").checked, useMax = $("xMax").checked;
-  const jst = Math.max(0, +$("xJst").value || 0), years = +$("xYears").value;
-
-  const rows = SCHOOL_PLANS.map(p => {
-    const inFromJst = Math.min(jst, p.jstMax);
-    const inFromSophia = useSophia ? p.sophia : 0;
-    let left = p.total - inFromSophia - inFromJst;
-    if (useMax) left = Math.min(left, p.floorMax);
-    const transferred = p.total - left;
-    const sophiaCost = useMax ? p.sophiaMo * 99 : 0;
-
-    let cost, taPace;
-    if (p.pay === "flat") {
-      const terms = Math.max(1, Math.ceil(left / CU_PER_TERM));
-      cost = terms * WGU_TERM;
-      taPace = `~${terms} yr (one $4,125 term per TA year)`;
-    } else {
-      cost = left * PER_CREDIT;
-      taPace = `~${(left / (TA_PER_YEAR / PER_CREDIT)).toFixed(1)} yr`;
-    }
-    const ta = Math.min(cost, TA_PER_YEAR * years);
-    const out = cost - ta + sophiaCost;
-    return { p, left, transferred, out, taPace };
-  }).sort((a, b) => a.out - b.out || a.left - b.left);
-
+  document.querySelectorAll("[data-sort]").forEach(b => b.classList.toggle("on", b.dataset.sort === state.sort));
+  const rows = PLANS.map(p => ({ p, s: planStats(p) }));
+  const pct = r => r.s.done / r.p.total;
+  rows.sort(state.sort === "pay" ? (a, b) => a.s.pay - b.s.pay || pct(b) - pct(a)
+          : state.sort === "done" ? (a, b) => pct(b) - pct(a) || a.s.pay - b.s.pay
+          : (a, b) => b.p.fit - a.p.fit || a.s.pay - b.s.pay);
   $("cmpTable").innerHTML =
-    `<tr><th>Degree</th><th>Knocked off</th><th>Left to take</th><th>$0 pace (TA only)</th><th>You pay (finish in ${years} yr)</th><th>Cloud-career fit</th></tr>` +
-    rows.map((r, i) => `
-      <tr class="${i === 0 ? "hot" : ""}">
-        <td><b>${esc(r.p.school)}</b><br>${esc(r.p.degree)}<br><span class="muted small">${esc(r.p.note)}</span></td>
-        <td>${r.transferred} of ${r.p.total}<br><span class="muted small">${Math.round(100 * r.transferred / r.p.total)}%</span></td>
-        <td>${r.left} ${r.p.pay === "flat" ? "CU" : "credits"}</td>
-        <td>${r.taPace}</td>
-        <td><b>${fmt(r.out)}</b></td>
-        <td>${esc(r.p.fit)}</td>
+    `<tr><th>Degree</th><th>Knocked off</th><th>Max</th><th>Left</th><th>You pay (${state.years} yr)</th><th>Cloud jobs</th></tr>` +
+    rows.map(({ p, s }) => `
+      <tr class="pick ${p.id === state.plan ? "current" : ""}" data-plan="${p.id}">
+        <td><div class="school">${esc(p.school)}</div><b>${esc(p.name)}</b></td>
+        <td><b>${Math.round(100 * s.done / p.total)}%</b><div class="small muted">${s.done}/${p.total}</div></td>
+        <td>${Math.round(100 * s.max / p.total)}%</td>
+        <td>${s.left} ${unit(p)}</td>
+        <td><b>${fmt(s.pay)}</b></td>
+        <td>${"★".repeat(p.fit)}<span class="muted">${"★".repeat(3 - p.fit)}</span></td>
       </tr>`).join("");
 }
 
-// remember the comparison settings like everything else
-const CMP_FIELDS = ["xSophia", "xJst", "xMax", "xYears"];
-CMP_FIELDS.forEach(id => {
-  const el = $(id), saved = (state.cmp || {})[id];
-  if (saved !== undefined) el.type === "checkbox" ? el.checked = saved : el.value = saved;
-});
-$("compareSec").addEventListener("input", () => {
-  state.cmp = {};
-  CMP_FIELDS.forEach(id => state.cmp[id] = $(id).type === "checkbox" ? $(id).checked : $(id).value);
-  save();
+function wonTotal() {
+  return APPS.reduce((sum, a) => { const x = state.apps[a.id] || {}; return sum + (x.status === "Won" ? +x.amt || 0 : 0); }, 0);
+}
+
+function renderMoney() {
+  const plan = planById(state.plan), s = planStats(plan);
+  const won = wonTotal(), pell = (+state.pell || 0) * state.years;
+  const pay = Math.max(0, s.pay - won - pell);
+  $("costBox").innerHTML = `
+    <div class="item"><div class="main">Tuition for what's left (${esc(s.pace)})</div><div class="right"><b>${fmt(s.cost)}</b></div></div>
+    <div class="item"><div class="main">Tuition Assistance (${fmt(TA_PER_YEAR)}/yr × ${state.years})</div><div class="right" style="color:var(--good)">−${fmt(s.ta)}</div></div>
+    <div class="item"><div class="main">Pell Grant (${fmt(+state.pell || 0)}/yr × ${state.years})</div><div class="right" style="color:var(--good)">−${fmt(pell)}</div></div>
+    <div class="item"><div class="main">Scholarships marked "Won"</div><div class="right" style="color:var(--good)">−${fmt(won)}</div></div>
+    <div class="item"><div class="main"><b>You pay</b></div><div class="right" style="font-size:1.2rem"><b>${fmt(pay)}</b></div></div>
+    ${s.pay - won - pell < 0 ? `<p class="small muted">Aid past the cost of school usually isn't paid out as cash for tuition, but Pell above tuition can come to you as a refund for living costs (taxable).</p>` : ""}`;
+  $("pell").value = state.pell;
+
+  $("deadlines").innerHTML = DEADLINES
+    .map(([d, n]) => [Math.ceil((new Date(d + "T23:59") - Date.now()) / 864e5), n])
+    .filter(([days]) => days >= 0)
+    .map(([days, n]) => `<div class="item"><div class="main">${esc(n)}</div>
+      <div class="right"><span class="tag ${days <= 30 ? "maybe" : "no"}">${days} days</span></div></div>`).join("")
+    || `<p class="muted small">Nothing coming up.</p>`;
+
+  const STATUSES = ["Not started", "Applied", "Won", "No luck"];
+  $("apps").innerHTML = APPS.map(a => {
+    const x = state.apps[a.id] || {}, st = STATUSES.includes(x.status) ? x.status : "Not started";
+    return `<div class="item"><div class="main">
+        <div class="name"><a href="${a.url}" target="_blank" rel="noopener">${esc(a.name)}</a> <span class="muted small">up to ${fmt(a.amt)}</span></div>
+        <div class="sub">Due: ${esc(a.due)} · ${esc(a.docs)}</div>
+        ${st === "Won" ? `<label class="small">Amount won $<input type="number" data-amt="${a.id}" value="${x.amt ?? a.amt}"></label>` : ""}
+      </div>
+      <div class="right"><select data-app="${a.id}">${STATUSES.map(o => `<option ${o === st ? "selected" : ""}>${o}</option>`).join("")}</select></div></div>`;
+  }).join("");
+}
+
+function renderAll() {
+  renderPlanSelect();
+  renderPlan();
+  renderSophia();
   renderCompare();
+  renderMoney();
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === state.tab));
+  ["plan", "sophia", "compare", "money"].forEach(t => $("tab-" + t).hidden = t !== state.tab);
+  save();
+}
+
+/* ==============================================================
+   7. EVENTS
+   ============================================================== */
+document.querySelector("nav").onclick = e => {
+  const t = e.target.dataset.tab;
+  if (t) { state.tab = t; renderAll(); window.scrollTo(0, 0); }
+};
+$("planSelect").onchange = e => { state.plan = e.target.value; renderAll(); };
+$("jst").oninput = e => { state.jst = Math.max(0, +e.target.value || 0); renderAll(); $("jst").focus(); };
+$("years").onchange = e => { state.years = +e.target.value; renderAll(); };
+$("pell").oninput = e => { state.pell = Math.max(0, +e.target.value || 0); renderAll(); $("pell").focus(); };
+
+document.addEventListener("change", e => {
+  const d = e.target.dataset;
+  const toggle = (list, id, on) => on ? [...new Set(list.concat(id))] : list.filter(x => x !== id);
+  if (d.sophia) state.sophia = toggle(state.sophia, d.sophia, e.target.checked);
+  else if (d.step) state.steps = toggle(state.steps, d.step, e.target.checked);
+  else if (d.app) {
+    const x = state.apps[d.app] = state.apps[d.app] || {};
+    x.status = e.target.value;
+    if (x.status === "Won" && x.amt === undefined) x.amt = APPS.find(a => a.id === d.app).amt;
+  } else if (d.amt) (state.apps[d.amt] = state.apps[d.amt] || {}).amt = +e.target.value || 0;
+  else return;
+  renderAll();
 });
-renderCompare();
+
+document.addEventListener("click", e => {
+  const f = e.target.dataset.filter, s = e.target.dataset.sort;
+  const row = e.target.closest("tr[data-plan]");
+  if (f) { state.filter = f; renderAll(); }
+  else if (s) { state.sort = s; renderAll(); }
+  else if (row) { state.plan = row.dataset.plan; state.tab = "plan"; renderAll(); window.scrollTo(0, 0); }
+});
+
+$("exportBtn").onclick = async () => {
+  const text = JSON.stringify(state);
+  try { await navigator.clipboard.writeText(text); alert("Backup copied. Paste it into 'Restore backup' on your other device."); }
+  catch (e) { prompt("Copy this backup text:", text); }
+};
+$("importBtn").onclick = () => {
+  const text = prompt("Paste your backup here (replaces what's saved now):");
+  if (!text) return;
+  try { state = Object.assign(state, JSON.parse(text)); renderAll(); }
+  catch (e) { alert("That didn't look like a valid backup."); }
+};
+
+renderAll();
 </script>
 </body>
 </html>
