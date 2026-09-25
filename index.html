@@ -60,9 +60,10 @@
   header .plan-line { font-size: .85rem; color: var(--muted); margin-top: 2px; }
   nav { display: flex; gap: 4px; margin-top: 10px; overflow-x: auto; }
   nav button {
-    flex: 1; border: none; background: none; color: var(--muted); font: inherit; font-size: .9rem; font-weight: 600;
+    flex: 1 0 auto; border: none; background: none; color: var(--muted); font: inherit; font-size: .9rem; font-weight: 600;
     padding: 10px 8px; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap;
   }
+  @media (max-width: 420px) { nav button { font-size: .8rem; padding: 10px 5px; } }
   nav button.on { color: var(--accent); border-bottom-color: var(--accent); }
 
   /* ---------- cards + stats ---------- */
@@ -662,13 +663,13 @@ function shareData() {
 function renderShare() {
   const { plan, s, topJob, trad, pctNow, pctPlan } = shareData();
   $("shareCard").innerHTML = `
-    <h2>🎓 How I'm getting my degree fast (and nearly free)</h2>
+    <h2>🎓 How I'm getting my degree fast and cheap</h2>
     <div class="small">A ${plan.level.toLowerCase()} degree in <b>${esc(plan.name)}</b> from ${esc(plan.school)}, while I'm still in the Navy.</div>
     <div class="grid">
       <div class="tile"><b>${pctNow}%</b><span>already done before my first class</span></div>
       <div class="tile"><b>${Math.round(s.done / 3)}</b><span>classes I'll never have to take</span></div>
       <div class="tile"><b>${dur(s.months)}</b><span>to finish, instead of ${dur(trad)}</span></div>
-      <div class="tile"><b>${fmt(s.pay)}</b><span>what I pay; the Navy covers most tuition</span></div>
+      <div class="tile"><b>${fmt(s.pay)}</b><span>out of pocket at this pace, after ${fmt(s.ta)} from the Navy</span></div>
     </div>
     <div><b>How it works</b></div>
     <ul>
@@ -682,13 +683,13 @@ function renderShare() {
 
 function shareText() {
   const { plan, s, topJob, trad, pctNow, pctPlan } = shareData();
-  return `🎓 How I'm getting my degree fast (and nearly free)
+  return `🎓 How I'm getting my degree fast and cheap
 ${plan.level} in ${plan.name} (${plan.school}), while still in the Navy.
 
 • ${pctNow}% done before my first class
 • ${Math.round(s.done / 3)} classes I'll never have to take
 • ${dur(s.months)} to finish instead of ${dur(trad)}
-• About ${fmt(s.pay)} out of pocket; the Navy covers most tuition
+• About ${fmt(s.pay)} out of pocket at this pace, after ${fmt(s.ta)} of Navy tuition help
 
 How: my Navy training counts as college credit, Sophia.org classes ($99/month, self-paced) transfer as real classes, and Navy Tuition Assistance pays tuition. ${s.k} more Sophia classes gets me to ${pctPlan}%.${topJob ? `
 Jobs it leads to: up to ${fmt(topJob[1])} median pay (${topJob[0]}, BLS).` : ""}
