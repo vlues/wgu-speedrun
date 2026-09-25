@@ -1127,7 +1127,7 @@ function renderSophia() {
   const picks = kept.slice(0, 6);
   const totalHrs = kept.reduce((t, x) => t + avgHrs(x.c.id), 0);
   $("picksNote").textContent = kept.length
-    ? `For ${plan.school} ${plan.name}: ${kept.length} more Sophia courses would take you to the transfer limit (${pct(done, plan.total)}% done), about ${Math.round(totalHrs)} hours total (${Math.ceil(totalHrs / 10)} weeks at 10 hrs/week). Start with these:`
+    ? `For ${plan.school} ${plan.name}: ${kept.length} more Sophia courses would take you to the most this degree accepts (${pct(done, plan.total)}% done), about ${Math.round(totalHrs)} hours total (${Math.ceil(totalHrs / 10)} weeks at 10 hrs/week). Start with these:`
     : "Every Sophia course that counts for this plan is done.";
   $("picksList").innerHTML = picks.map((x, i) => {
     const h = HOURS[x.c.id] || [];
