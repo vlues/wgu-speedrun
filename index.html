@@ -1113,14 +1113,21 @@ function renderSophia() {
 
   // Picks: untaken courses that add credit to this plan, ranked by
   // credit gained per hour of work; ties go to courses that count in more plans.
-  const useful = coursesToTake(plan);
-  const picks = useful
+  const ranked = coursesToTake(plan)
     .map(x => ({ ...x, per10: 10 * x.gain / avgHrs(x.c.id) }))
-    .sort((a, b) => b.per10 - a.per10 || plansCounted(b.c) - plansCounted(a.c))
-    .slice(0, 6);
-  const totalHrs = useful.reduce((t, x) => t + avgHrs(x.c.id), 0);
-  $("picksNote").textContent = useful.length
-    ? `For ${plan.school} ${plan.name}: ${useful.length} more Sophia courses count, about ${Math.round(totalHrs)} hours total (${Math.ceil(totalHrs / 10)} weeks at 10 hrs/week). Start with these:`
+    .sort((a, b) => b.per10 - a.per10 || plansCounted(b.c) - plansCounted(a.c));
+  // Walk the ranked list and keep only courses that still add credit once
+  // the earlier picks are counted (transfer limits fill up).
+  const kept = [];
+  let ids = state.sophia.slice(), done = transferIn(plan, ids).done;
+  ranked.forEach(x => {
+    const next = transferIn(plan, ids.concat(x.c.id)).done;
+    if (next > done) { kept.push(x); ids.push(x.c.id); done = next; }
+  });
+  const picks = kept.slice(0, 6);
+  const totalHrs = kept.reduce((t, x) => t + avgHrs(x.c.id), 0);
+  $("picksNote").textContent = kept.length
+    ? `For ${plan.school} ${plan.name}: ${kept.length} more Sophia courses would take you to the transfer limit (${pct(done, plan.total)}% done), about ${Math.round(totalHrs)} hours total (${Math.ceil(totalHrs / 10)} weeks at 10 hrs/week). Start with these:`
     : "Every Sophia course that counts for this plan is done.";
   $("picksList").innerHTML = picks.map((x, i) => {
     const h = HOURS[x.c.id] || [];
