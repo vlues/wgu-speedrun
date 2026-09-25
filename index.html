@@ -280,15 +280,15 @@
    fit:         1–3 stars for how well it reads for a cloud/IT job
    ============================================================== */
 const PLANS = [
-  { id: "wgu-cne",  school: "WGU", name: "Cloud & Network Engineering", total: 109, term: 4125, jstMax: 4, maxTransfer: 109, fit: 3,
+  { id: "wgu-cne",  school: "WGU", name: "Cloud & Network Engineering", total: 109, term: 4125, jstMax: 4, maxTransfer: 81, fit: 3,
     note: "Cloud degree with 7 certs included (A+, Network+, Security+, Cloud+, Linux, ITIL).", url: "https://www.wgu.edu/online-it-degrees/cloud-network-engineering-bachelors-program.html" },
-  { id: "wgu-it",   school: "WGU", name: "Information Technology", total: 120, approx: true, term: 4125, jstMax: 0, maxTransfer: 120, fit: 3,
+  { id: "wgu-it",   school: "WGU", name: "Information Technology", total: 120, approx: true, term: 4125, jstMax: 0, maxTransfer: 90, fit: 3,
     note: "Broad IT degree with certs built in.", url: "https://www.wgu.edu/online-it-degrees/information-technology-bachelors-program.html" },
-  { id: "wgu-csia", school: "WGU", name: "Cybersecurity & Information Assurance", total: 120, approx: true, term: 4625, jstMax: 0, maxTransfer: 120, fit: 3,
+  { id: "wgu-csia", school: "WGU", name: "Cybersecurity & Information Assurance", total: 120, approx: true, term: 4625, jstMax: 0, maxTransfer: 90, fit: 3,
     note: "Security degree packed with certs. Higher term price.", url: "https://www.wgu.edu/online-it-degrees/cybersecurity-information-assurance-bachelors-program.html" },
-  { id: "wgu-swe",  school: "WGU", name: "Software Engineering", total: 120, approx: true, term: 4325, jstMax: 0, maxTransfer: 120, fit: 2,
+  { id: "wgu-swe",  school: "WGU", name: "Software Engineering", total: 120, approx: true, term: 4325, jstMax: 0, maxTransfer: 90, fit: 2,
     note: "Coding-heavy. Few Sophia courses count.", url: "https://www.wgu.edu/online-it-degrees/software-engineering-bachelors-program.html" },
-  { id: "wgu-mgmt", school: "WGU", name: "Business Management", total: 120, approx: true, term: 4050, jstMax: 0, maxTransfer: 120, fit: 1,
+  { id: "wgu-mgmt", school: "WGU", name: "Business Management", total: 120, approx: true, term: 4050, jstMax: 0, maxTransfer: 90, fit: 1,
     note: "Business degree. Many business Sophia courses count.", url: "https://www.wgu.edu/online-business-degrees/business-management-bachelors-program.html" },
 
   { id: "umgc-cyt", school: "UMGC", name: "Cybersecurity Technology", total: 120, jstMax: 30, maxTransfer: 90, fit: 3,
@@ -375,11 +375,11 @@ const SOPHIA = [
    ============================================================== */
 const SCHOOL_RULES = {
   "WGU": [
-    ["Max transfer", "No fixed number, but only courses that match a specific WGU course count", true],
-    ["Since March 2026", "Only general-education and lower-division courses transfer. Upper-division courses must be taken at WGU", true],
-    ["Sophia", "Counts only where it matches a course in your program", true],
-    ["JST / military", "Counts only if it matches a specific WGU course, so most ABH credit won't count", true],
-    ["Timing", "All transcripts must be in before your start date. Nothing gets added after you start", true]
+    ["Max transfer", "Up to 75% of the degree, and only courses that match a specific WGU course (75% figure is from third-party sites)", false],
+    ["Since March 2026", "Sophia now only clears general-education and lower-division courses. Upper-division courses must be taken at WGU (stated on Sophia's WGU partner page)", true],
+    ["JST / military", "Reviewed like any ACE credit, against your specific program. Most ABH credit won't match a WGU course", true],
+    ["Deadline", "Official transcripts by the 5th of the month before your start date. No transfer credit is added after you start", true],
+    ["Minimum grade", "C- or better", true]
   ],
   "UMGC": [
     ["Max transfer", "90 of 120 credits, from all sources combined", true],
@@ -389,10 +389,11 @@ const SCHOOL_RULES = {
     ["Bonus at E-5", "Up to 3 extra credits for rank (6 at E-6 and above)", true]
   ],
   "Embry-Riddle": [
-    ["Max transfer", "About 90 credits (estimate, not confirmed)", false],
-    ["Must take at Embry-Riddle", "About 30 credits (estimate, not confirmed)", false],
-    ["Sophia", "Not a partner school. Reviewed case by case using ACE recommendations", true],
-    ["JST / military", "Follows ACE recommendations. Aviation training fits the Aeronautics degree best", true]
+    ["Max transfer", "75% of the degree (about 90 credits)", true],
+    ["Must take at Embry-Riddle", "Your last 30 credits", true],
+    ["Sophia", "Not a partner school, but ACE-reviewed credit is accepted. It only counts if you finish it BEFORE you enroll", true],
+    ["JST / military", "Follows ACE recommendations. BS Aeronautics lets over a quarter of the degree come from military training", true],
+    ["CLEP / DSST", "Active duty can test anytime, even after enrolling", true]
   ]
 };
 
@@ -571,7 +572,7 @@ function renderPlan() {
   $("breakdown").innerHTML = `
     <div class="brk"><span>Sophia courses you've finished</span><b>${s.sophiaDone} ${u}</b></div>
     <div class="brk"><span>JST credit this degree can use${jstLost > 0 ? ` <span class="muted">(${jstLost} of your ${rawJst} won't count here)</span>` : ""}</span><b>${s.jst} ${u}</b></div>
-    <div class="brk"><span>Transfer limit at ${esc(plan.school)}</span><b>${plan.maxTransfer === plan.total ? "course matches only" : plan.maxTransfer + " " + u}</b></div>
+    <div class="brk"><span>Transfer limit at ${esc(plan.school)}</span><b>${plan.maxTransfer} ${u}</b></div>
     ${capped ? `<p class="small" style="color:var(--warn)">You've hit the transfer limit. The rest has to be taken at ${esc(plan.school)}.</p>` : ""}`;
 
   $("rulesHead").textContent = `${plan.school} transfer rules`;
@@ -649,9 +650,9 @@ function renderSophia() {
 function renderCompare() {
   document.querySelectorAll("[data-sort]").forEach(b => b.classList.toggle("on", b.dataset.sort === state.sort));
   const rows = PLANS.map(p => ({ p, s: planStats(p) }));
-  const pct = r => r.s.done / r.p.total;
-  rows.sort(state.sort === "pay" ? (a, b) => a.s.pay - b.s.pay || pct(b) - pct(a)
-          : state.sort === "done" ? (a, b) => pct(b) - pct(a) || a.s.pay - b.s.pay
+  const ratio = r => r.s.done / r.p.total;
+  rows.sort(state.sort === "pay" ? (a, b) => a.s.pay - b.s.pay || ratio(b) - ratio(a)
+          : state.sort === "done" ? (a, b) => ratio(b) - ratio(a) || a.s.pay - b.s.pay
           : (a, b) => b.p.fit - a.p.fit || a.s.pay - b.s.pay);
   $("cmpTable").innerHTML = rows.map(({ p, s }) => `
     <div class="item pick ${p.id === state.plan ? "current" : ""}" data-plan="${p.id}">
