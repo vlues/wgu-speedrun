@@ -252,6 +252,11 @@
   <!-- ===================== TAB 2: SOPHIA ===================== -->
   <section id="tab-sophia" hidden>
     <div class="card">
+      <h2>⚡ My picks: most credit per hour</h2>
+      <p class="small muted" id="picksNote"></p>
+      <div id="picksList"></div>
+    </div>
+    <div class="card">
       <h2>Safe picks: count in the most plans</h2>
       <p class="small muted">Not sure which school yet? Take these first. They clear credit almost everywhere, and your JST stacks on top of them (JST counts most at UMGC and Embry-Riddle, barely at WGU).</p>
       <div id="safeList"></div>
@@ -263,9 +268,13 @@
         <button class="chip on" data-filter="mine">Counts for my plan</button>
         <button class="chip" data-filter="all">All courses</button>
       </div>
+      <div class="chips">
+        <button class="chip" data-ssort="best">Best value first</button>
+        <button class="chip" data-ssort="fast">Fastest first</button>
+      </div>
       <div id="sophiaList"></div>
     </div>
-    <p class="small muted">Sophia is $99/month, self-paced, open-book. Most people finish 2–4 courses a month. Mappings verified Sept 2026. <span class="tag maybe">likely</span> means the school reviews it case by case.</p>
+    <p class="small muted">Sophia is $99/month, self-paced, open-book. Sophia says the average course takes about 28 days; focused students finish faster. Hours are estimates from Sophia syllabi and student reports (confidence shown per course). Essay courses take longer on the calendar because each essay waits 1–4 business days for grading. Mappings verified Sept 2026. <span class="tag maybe">likely</span> means the school reviews it case by case.</p>
   </section>
 
   <!-- ===================== TAB 3: COMPARE ===================== -->
@@ -599,6 +608,54 @@ const SOPHIA = [
   { id: "so-span",  name: "Spanish I", cr: 3, umgc: "SPAN 111", erau: "hss" },
   { id: "so-fin",   name: "Personal Finance", cr: 3, umgc: "FINC 321", erau: "elec" }
 ];
+
+/* ==============================================================
+   HOURS each Sophia course takes (active work, not calendar time).
+   [low, high, difficulty, note, confidence] — compiled Sept 2026 from
+   Sophia syllabi (challenge/milestone/touchstone counts) and student
+   reports. Essay "touchstones" are human-graded (1–4 business days
+   each), so essay-heavy courses take longer on the calendar.
+   ============================================================== */
+const HOURS = {
+  "so-ethics": [8, 15, "Easy", "no essays", "Medium"],
+  "so-macro":  [10, 20, "Easy", "no essays, all multiple choice", "Medium"],
+  "so-micro":  [10, 20, "Easy", "no essays, all multiple choice", "Medium"],
+  "so-acct":   [10, 20, "Medium", "no essays, more math problems", "Medium"],
+  "so-soc":    [10, 20, "Easy", "1–2 short essays", "Medium"],
+  "so-hist":   [10, 20, "Easy", "1–2 essays", "Medium"],
+  "so-hist2":  [10, 20, "Easy", "1–2 essays", "Low"],
+  "so-sci":    [10, 20, "Easy", "1 essay", "Medium"],
+  "so-biolab": [10, 20, "Easy", "virtual lab, 1 credit", "Low"],
+  "so-psych":  [12, 22, "Easy", "3 essays", "High"],
+  "so-bus":    [12, 22, "Easy", "1 essay", "High"],
+  "so-law":    [12, 22, "Easy", "1 essay", "High"],
+  "so-mgmt":   [15, 25, "Easy", "1 essay", "High"],
+  "so-it":     [15, 25, "Easy", "mostly multiple choice", "Low"],
+  "so-bio":    [15, 25, "Easy", "no essays", "Medium"],
+  "so-nutr":   [15, 25, "Easy", "1 project", "Low"],
+  "so-gov":    [15, 25, "Easy", "2 essays", "High"],
+  "so-crit":   [15, 25, "Easy", "logic and reasoning", "Low"],
+  "so-fin":    [15, 25, "Easy", "practical, everyday topics", "Low"],
+  "so-db":     [15, 25, "Medium", "some SQL practice", "Low"],
+  "so-net":    [15, 25, "Medium", "lots of terms to learn", "Low"],
+  "so-chem":   [15, 25, "Medium", "problem solving", "Low"],
+  "so-lead":   [15, 25, "Medium", "3 essays", "High"],
+  "so-speech": [20, 30, "Medium", "recorded speeches, grading waits", "Medium"],
+  "so-pm":     [20, 30, "Medium", "a project plan", "Low"],
+  "so-stats":  [20, 35, "Medium", "math-heavy, no essays", "Medium"],
+  "so-web":    [20, 35, "Medium", "coding projects", "Low"],
+  "so-py":     [20, 35, "Medium", "coding projects", "Low"],
+  "so-java":   [20, 35, "Hard", "coding projects, object-oriented", "Low"],
+  "so-bizdata":[20, 35, "Hard", "Excel and data work", "Low"],
+  "so-span":   [20, 35, "Medium", "speaking practice", "Low"],
+  "so-eng":    [25, 40, "Medium", "graded essays, grading waits", "Medium"],
+  "so-eng2":   [30, 45, "Hard", "7 graded essays; 3–5 weeks on the calendar", "High"],
+  "so-alg":    [40, 65, "Hard", "lots of math practice", "High"],
+  "so-precalc":[40, 65, "Hard", "lots of math practice", "Medium"],
+  "so-calc":   [45, 70, "Hard", "hardest math on Sophia", "Medium"]
+};
+const avgHrs = id => HOURS[id] ? (HOURS[id][0] + HOURS[id][1]) / 2 : 25;
+const hrsLabel = id => HOURS[id] ? `⏱ ${HOURS[id][0]}–${HOURS[id][1]} hrs · ${HOURS[id][2]}` : "";
 
 /* ==============================================================
    SCHOOL TRANSFER RULES — shown on My Plan. "ok" = confirmed on the
@@ -1023,7 +1080,7 @@ function renderPlan() {
   const best = coursesToTake(plan).slice(0, 5);
   $("bestList").innerHTML = best.length
     ? best.map(x => `<div class="item"><div class="main"><div class="name">${esc(x.c.name)}</div>
-        <div class="sub">Clears ${esc(x.hit.label)}</div></div>
+        <div class="sub">Clears ${esc(x.hit.label)}</div><div class="sub">${hrsLabel(x.c.id)}</div></div>
         <div class="right"><span class="tag ${x.hit.major ? "major" : x.hit.kind}">+${x.gain} ${u}</span></div></div>`).join("")
     : `<p class="muted small">You've taken every Sophia course that counts for this plan. 🎉</p>`;
 
@@ -1054,6 +1111,26 @@ function renderSophia() {
 
   const planCount = plansCounted;
 
+  // Picks: untaken courses that add credit to this plan, ranked by
+  // credit gained per hour of work; ties go to courses that count in more plans.
+  const useful = coursesToTake(plan);
+  const picks = useful
+    .map(x => ({ ...x, per10: 10 * x.gain / avgHrs(x.c.id) }))
+    .sort((a, b) => b.per10 - a.per10 || plansCounted(b.c) - plansCounted(a.c))
+    .slice(0, 6);
+  const totalHrs = useful.reduce((t, x) => t + avgHrs(x.c.id), 0);
+  $("picksNote").textContent = useful.length
+    ? `For ${plan.school} ${plan.name}: ${useful.length} more Sophia courses count, about ${Math.round(totalHrs)} hours total (${Math.ceil(totalHrs / 10)} weeks at 10 hrs/week). Start with these:`
+    : "Every Sophia course that counts for this plan is done.";
+  $("picksList").innerHTML = picks.map((x, i) => {
+    const h = HOURS[x.c.id] || [];
+    return `<div class="item"><div class="main">
+      <div class="name">${i + 1}. ${esc(x.c.name)}</div>
+      <div class="sub">${hrsLabel(x.c.id)} · ${esc(h[3] || "")} · counts in ${plansCounted(x.c)} of ${PLANS.length} plans</div>
+      <div class="sub">Clears ${esc(x.hit.label)}</div></div>
+      <div class="right"><b>+${x.gain}</b> ${unit(plan)}<div class="muted">${x.per10.toFixed(1)} per 10 hrs</div></div></div>`;
+  }).join("");
+
   // Safe picks: untaken courses that count in the most plans, so they
   // stay useful whichever school/degree you end up choosing.
   const safe = SOPHIA.filter(c => !state.sophia.includes(c.id))
@@ -1062,6 +1139,7 @@ function renderSophia() {
     .slice(0, 8);
   $("safeList").innerHTML = safe.map(({ c, n }) => `
     <div class="item"><div class="main"><div class="name">${esc(c.name)}</div>
+      <div class="sub">${hrsLabel(c.id)}</div>
       <div class="bar" style="height:6px;margin-top:5px"><div style="width:${100 * n / PLANS.length}%"></div></div></div>
       <div class="right"><b>${n}</b>/${PLANS.length} plans</div></div>`).join("");
   const detail = sophiaCredit(plan, state.sophia).detail;
@@ -1069,7 +1147,10 @@ function renderSophia() {
   const rows = SOPHIA
     .map(c => ({ c, hit: clearsIn(c, plan), n: planCount(c), done: state.sophia.includes(c.id) }))
     .filter(x => state.filter === "all" || x.hit)
-    .sort((a, b) => (a.done - b.done) || ((b.hit ? 1 : 0) - (a.hit ? 1 : 0)) || (b.n - a.n));
+    .sort((a, b) => (a.done - b.done) || ((b.hit ? 1 : 0) - (a.hit ? 1 : 0)) ||
+      (state.sophiaSort === "fast" ? avgHrs(a.c.id) - avgHrs(b.c.id)
+        : (b.n / avgHrs(b.c.id)) - (a.n / avgHrs(a.c.id))));
+  document.querySelectorAll("[data-ssort]").forEach(b => b.classList.toggle("on", b.dataset.ssort === (state.sophiaSort || "best")));
 
   $("sophiaList").innerHTML = rows.map(({ c, hit, n, done }) => {
     let tag;
@@ -1081,7 +1162,8 @@ function renderSophia() {
       <input type="checkbox" data-sophia="${c.id}" ${done ? "checked" : ""}>
       <div class="main"><div class="name">${esc(c.name)}</div>
         <div style="margin:3px 0">${tag}</div>
-        <div class="sub">${c.cr} credits · counts in ${n} of ${PLANS.length} plans</div></div></label>`;
+        <div class="sub">${hrsLabel(c.id)} · ${c.cr} credits · counts in ${n} of ${PLANS.length} plans</div>
+        ${HOURS[c.id] ? `<div class="sub">${esc(HOURS[c.id][3])} · ${esc(HOURS[c.id][4])} confidence</div>` : ""}</div></label>`;
   }).join("");
 }
 
@@ -1188,7 +1270,8 @@ document.addEventListener("change", e => {
 });
 
 document.addEventListener("click", e => {
-  const f = e.target.dataset.filter, s = e.target.dataset.sort, pr = e.target.dataset.preset;
+  const f = e.target.dataset.filter, s = e.target.dataset.sort, pr = e.target.dataset.preset, ss = e.target.dataset.ssort;
+  if (ss) { state.sophiaSort = ss; renderAll(); return; }
   if (pr) { [state.moreSophia, state.sophiaPace, state.schoolPace] = PRESETS[pr]; renderAll(); return; }
   const row = e.target.closest("[data-plan]");
   if (f) { state.filter = f; renderAll(); }
