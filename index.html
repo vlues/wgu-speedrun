@@ -154,6 +154,7 @@
       <button data-tab="sophia">Sophia</button>
       <button data-tab="compare">Compare</button>
       <button data-tab="money">Money</button>
+      <button data-tab="career">Career</button>
     </nav>
   </div>
 </header>
@@ -290,6 +291,74 @@
       <h2>Scholarships &amp; grants</h2>
       <p class="small muted">All of these stack with TA. Set a status as you go; money marked "Won" comes off your cost above. One 500-word essay about you and your plan works for most of them.</p>
       <div id="apps"></div>
+    </div>
+  </section>
+
+  <!-- ===================== TAB 5: CAREER ===================== -->
+  <section id="tab-career" hidden>
+    <div class="card">
+      <h2>🎓 How many degrees can you stack?</h2>
+      <p class="small muted">Realistic answer for about 3 years left in service: <b>2 degrees plus certificates</b>, then a master's. All facts below checked on official school and Navy pages, Sept 2026.</p>
+      <div class="fact"><div class="big">1</div><div><b>Associate's from the US Naval Community College (USNCC) — FREE.</b><br><span class="muted small">Paid entirely by USNCC, not TA or GI Bill. Open to active-duty enlisted sailors. About 40 programs, including an AA in General Studies with an AI or Data Analytics specialization delivered by UMGC. 15 credits come from your military training. <a href="https://www.usncc.edu/s/academics/available-programs" target="_blank" rel="noopener">Programs ↗</a></span></div></div>
+      <div class="fact"><div class="big">2</div><div><b>Bachelor's at UMGC — paid by TA.</b><br><span class="muted small">Your associate's rolls straight in (USNCC partners with UMGC). UMGC takes up to 90 transfer credits, so Sophia and JST stack on top. TA pays because it's a higher level than what you hold.</span></div></div>
+      <div class="fact"><div class="big">+</div><div><b>Certificates earned inside the bachelor's.</b><br><span class="muted small">Example: UMGC's 18-credit Cloud Computing &amp; Networking certificate counts fully toward the Cybersecurity Technology bachelor's. A resume line halfway through, no extra classes.</span></div></div>
+      <div class="fact"><div class="big">3</div><div><b>Next: a master's, not a second bachelor's.</b><br><span class="muted small">Navy TA won't pay for a second degree at the same level. A second UMGC bachelor's also needs 30 new UMGC credits and 150 total. TA does pay for a master's, and your GI Bill is still untouched.</span></div></div>
+      <p class="small muted">Embry-Riddle route: associate's rolls into its bachelor's, and active-duty students can take their Embry-Riddle credits at any point instead of last. A USNCC → Embry-Riddle transfer agreement wasn't found, so ask Embry-Riddle.</p>
+    </div>
+
+    <div class="card">
+      <h2>💰 Best-paying path for each degree</h2>
+      <p class="small muted">Your current plan's row is highlighted. Pay is US median (BLS, May 2025) and Europe gross salary in euros.</p>
+      <div id="careerPaths"></div>
+    </div>
+
+    <div class="card">
+      <h2>🇺🇸 USA: pay by job</h2>
+      <div class="scroll"><table>
+        <tr><th>Job</th><th>Entry (lowest 10%)</th><th>Median</th><th>Top-paying places*</th></tr>
+        <tr><td><b>Information security analyst</b><div class="small muted">+21% growth</div></td><td>$75,090</td><td><b>$129,180</b></td><td>San Jose, San Francisco, Seattle</td></tr>
+        <tr><td><b>Computer network architect</b></td><td>$79,900</td><td><b>$134,050</b></td><td>San Jose, San Francisco, Seattle, Salt Lake City</td></tr>
+        <tr><td><b>Data scientist</b><div class="small muted">+35% growth</div></td><td>$67,240</td><td><b>$120,230</b></td><td>San Jose</td></tr>
+        <tr><td><b>Management analyst</b></td><td>$60,640</td><td><b>$101,860</b></td><td>—</td></tr>
+        <tr><td><b>Network &amp; systems administrator</b></td><td>$62,640</td><td><b>$99,130</b></td><td>DC, Nevada, New Jersey</td></tr>
+        <tr><td><b>Emergency management director</b></td><td>$54,210</td><td><b>$93,330</b></td><td>DC, New Mexico, Washington</td></tr>
+        <tr><td><b>Network support specialist</b><div class="small muted">associate's is typical</div></td><td>$47,120</td><td><b>$76,220</b></td><td>—</td></tr>
+      </table></div>
+      <p class="small muted">Entry and median: <a href="https://www.bls.gov/ooh/" target="_blank" rel="noopener">BLS</a>, May 2025. *Top places come from older BLS data (2022–2023) and are a rough guide.</p>
+    </div>
+
+    <div class="card">
+      <h2>🔐 Your security clearance is worth money</h2>
+      <div class="fact"><div class="big">$126k</div><div>average total pay for cleared professionals (<a href="https://news.clearancejobs.com/" target="_blank" rel="noopener">ClearanceJobs 2026 report</a>).</div></div>
+      <div class="fact"><div class="big">$82,753</div><div>average for cleared IT in the <b>first 2 years</b>, the highest-paying early-career field in the report.</div></div>
+      <div class="fact"><div class="big">MD · VA · CO · DC</div><div>top places for cleared pay: Maryland $139,303, Virginia $138,748, Colorado $138,256, DC $136,369.</div></div>
+      <p class="small muted">Keeping your clearance active when you leave is one of the biggest pay boosts available to you.</p>
+    </div>
+
+    <div class="card">
+      <h2>🏛️ Federal jobs (veterans' preference)</h2>
+      <div class="scroll"><table>
+        <tr><th>IT Specialist (GS-2210), 2026</th><th>Most of US</th><th>DC area</th><th>San Jose/SF</th></tr>
+        <tr><td>GS-7 (bachelor's)</td><td>$43,106</td><td>$57,736</td><td>$63,081</td></tr>
+        <tr><td>GS-9 (3.5 GPA, or 1 yr experience)</td><td>$52,727</td><td>$70,623</td><td>$77,161</td></tr>
+        <tr><td>GS-11 (master's, or 1 yr at GS-9)</td><td>$63,795</td><td>$85,447</td><td>$93,358</td></tr>
+      </table></div>
+      <p class="small muted">Step 1 pay from <a href="https://www.opm.gov/policy-data-oversight/pay-leave/salaries-wages/2026/general-schedule/" target="_blank" rel="noopener">OPM 2026 tables</a>. Veterans get 5 extra points in hiring (10 with a service-connected disability). Federal pay starts lower than private jobs but comes with a pension and job security.</p>
+    </div>
+
+    <div class="card">
+      <h2>🇪🇺 Europe: pay and how an American can work there</h2>
+      <div class="scroll"><table>
+        <tr><th>Where</th><th>Cybersecurity pay (gross)</th><th>How you get in</th></tr>
+        <tr><td><b>Zurich</b></td><td>~€122,000 avg</td><td>Hardest: not in the EU, only ~8,500 permits a year for all non-Europeans</td></tr>
+        <tr class="hot"><td><b>Germany</b></td><td>~€78,000 median<div class="small muted">(IT security, official Entgeltatlas)</div></td><td>Easiest: EU Blue Card for IT at €45,934+. Or US-base jobs (below)</td></tr>
+        <tr><td><b>Amsterdam</b></td><td>~€74,000 (cloud engineer)</td><td>Skilled-migrant permit at €5,942/month (€4,357 under 30). Tax break for newcomers</td></tr>
+        <tr><td><b>Luxembourg</b></td><td>~€75,000</td><td>EU Blue Card</td></tr>
+        <tr><td><b>Dublin</b></td><td>~€60,000</td><td>Critical Skills permit at €40,904+</td></tr>
+        <tr><td><b>Madrid</b></td><td>~€33,000</td><td>Blue Card €41,356+, or digital nomad visa (€2,849/month income) working remotely for a US company</td></tr>
+      </table></div>
+      <div class="fact"><div class="big">🇺🇸🏠</div><div><b>The smart Europe move: US-base jobs.</b><br><span class="muted small">Defense contractors in Germany can get you work status through the DoD's DOCPER/TESA process, so you need no German visa. DoD civilian (GS) jobs at Ramstein, Stuttgart, Italy or Spain are on USAJobs.gov. Overseas GS pay has no locality bump, but hires from the US can get a housing allowance (check current rates at aoprals.state.gov).</span></div></div>
+      <p class="small muted">European pay is lower than US pay for the same job, and taxes are usually higher. Most figures come from salary sites (Glassdoor, Hays summaries) and vary by source. Germany's figure is official. Visa thresholds are official 2026 numbers.</p>
     </div>
   </section>
 
@@ -544,6 +613,40 @@ const JOBS_BY_PLAN = {
   "wgu-cne": ["sysadmin", "architect", "infosec"], "wgu-it": ["sysadmin", "netsupport", "architect"],
   "wgu-csia": ["infosec", "sysadmin"], "wgu-swe": ["data", "sysadmin"], "wgu-mgmt": ["analyst"]
 };
+
+/* Best-paying path for each kind of degree (Career tab). */
+const CAREER_PATHS = [
+  { field: "cyber", degrees: "Cybersecurity (UMGC Cyber Tech / Cyber Ops / Cyber Mgmt, WGU Cybersecurity)",
+    entry: "Security / SOC analyst → information security analyst", us: "$129,180 median · cleared IT starts ~$82,753",
+    usWhere: "Maryland, Virginia, DC (cleared); San Jose, Seattle", eu: "Zurich ~€122k · Germany ~€78k (easiest)" },
+  { field: "it", degrees: "IT / Computer Info Systems / Computer Science / Cloud (UMGC CIS & CS, WGU Cloud & IT)",
+    entry: "Network support → systems administrator → network architect", us: "$76,220 → $99,130 → $134,050",
+    usWhere: "San Jose, Seattle (architects); DC for admins", eu: "Amsterdam ~€74k (cloud) · Germany" },
+  { field: "data", degrees: "Data Science (UMGC, Embry-Riddle)",
+    entry: "Data analyst → data scientist", us: "$120,230 median, +35% growth",
+    usWhere: "San Jose and other tech hubs", eu: "Copenhagen €78k–115k (salary-site data)" },
+  { field: "emergency", degrees: "Homeland Security / Aviation Safety / Emergency Mgmt (UMGC, Embry-Riddle)",
+    entry: "Emergency management specialist → director", us: "$93,330 median (director roles need experience)",
+    usWhere: "DC, New Mexico, Washington", eu: "Mostly US-base GS and contractor jobs" },
+  { field: "business", degrees: "Business / General Studies / Aeronautics / Interdisciplinary",
+    entry: "Operations or management analyst", us: "$101,860 median",
+    usWhere: "Large metro areas, federal contractors", eu: "Germany via EU Blue Card" }
+];
+const FIELD_BY_PLAN = id =>
+  /cyt|cyo|cmp|csia/.test(id) ? "cyber" : /-ds/.test(id) ? "data" :
+  /hls|safety|as-em/.test(id) ? "emergency" : /cis|umgc-cs|cne|wgu-it|swe/.test(id) ? "it" : "business";
+
+function renderCareer() {
+  const mine = FIELD_BY_PLAN(state.plan);
+  $("careerPaths").innerHTML = CAREER_PATHS.map(c => `
+    <div class="item ${c.field === mine ? "current" : ""}" style="border-radius:10px;padding-left:8px;padding-right:8px">
+      <div class="main">
+        <div class="school">${esc(c.degrees)}</div>
+        <div class="name">${esc(c.entry)}</div>
+        <div class="sub">🇺🇸 ${esc(c.us)} · best in ${esc(c.usWhere)}</div>
+        <div class="sub">🇪🇺 ${esc(c.eu)}</div>
+      </div></div>`).join("");
+}
 
 /* Calculator presets: [more Sophia classes, Sophia classes/month, school classes/month] */
 const PRESETS = { chill: [4, 2, 1], steady: [8, 3, 2], speed: [15, 5, 4] };
@@ -923,8 +1026,9 @@ function renderAll() {
   renderSophia();
   renderCompare();
   renderMoney();
+  renderCareer();
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === state.tab));
-  ["plan", "sophia", "compare", "money"].forEach(t => $("tab-" + t).hidden = t !== state.tab);
+  ["plan", "sophia", "compare", "money", "career"].forEach(t => $("tab-" + t).hidden = t !== state.tab);
   save();
 }
 
