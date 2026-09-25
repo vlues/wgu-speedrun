@@ -75,9 +75,9 @@
   .bar > div { height: 100%; background: var(--good); transition: width .3s; }
   .bar > div + div { background: var(--accent); opacity: .35; }
   .bar.big { height: 14px; }
-  .pctrow { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; font-size: .9rem; }
-  .pctrow b { font-size: 1.5rem; color: var(--good); }
-  .pctrow span { color: var(--muted); font-size: .85rem; }
+  .pctrow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; font-size: .9rem; }
+  .pctrow b { font-size: 1.5rem; color: var(--good); white-space: nowrap; }
+  .pctrow span { color: var(--muted); font-size: .8rem; text-align: right; }
   .pct { font-weight: 700; color: var(--good); }
   .brk { display: flex; justify-content: space-between; font-size: .88rem; padding: 5px 0; border-top: 1px dashed var(--line); }
   .brk:first-child { border-top: none; }
