@@ -738,8 +738,8 @@ function renderPlan() {
 
   const total = Math.max(1, s.months);
   $("timeline").innerHTML =
-    (s.sophiaMonths ? `<div style="width:${100 * s.sophiaMonths / total}%;background:var(--warn)">Sophia ${s.sophiaMonths} mo</div>` : "") +
-    `<div style="width:${100 * s.schoolMonths / total}%;background:var(--accent)">${esc(plan.school)} ${dur(s.schoolMonths)}</div>`;
+    (s.sophiaMonths ? `<div style="width:${Math.max(24, 100 * s.sophiaMonths / total)}%;background:var(--warn)">Sophia ${s.sophiaMonths} mo</div>` : "") +
+    `<div style="flex:1;background:var(--accent)">${esc(plan.school)} ${dur(s.schoolMonths)}</div>`;
   $("calcStats").innerHTML = `
     <div class="stat"><b>${monthName(s.months)}</b><span>finish (${dur(s.months)})</span></div>
     <div class="stat"><b>${s.classesLeft}</b><span>classes at ${esc(plan.school)}</span></div>
