@@ -138,6 +138,15 @@
   .fact { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); }
   .fact:first-child { border-top: none; }
   .fact .big { font-size: 1.3rem; font-weight: 800; color: var(--good); min-width: 88px; }
+  .share { background: linear-gradient(135deg, #1e3a8a, #2563eb 55%, #0ea5e9); color: #fff; border: none; }
+  .share h2 { color: #fff; font-size: 1.15rem; }
+  .share .muted, .share .small { color: rgba(255,255,255,.85); }
+  .share .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+  .share .tile { background: rgba(255,255,255,.14); border-radius: 12px; padding: 12px; }
+  .share .tile b { display: block; font-size: 1.5rem; line-height: 1.2; }
+  .share .tile span { font-size: .8rem; opacity: .9; }
+  .share ul { margin: 8px 0 0; padding-left: 18px; font-size: .9rem; }
+  .share li { margin: 4px 0; }
   .note { background: var(--warn-soft); border-radius: 10px; padding: 10px 12px; font-size: .85rem; }
   ol.steps { padding-left: 0; list-style: none; margin: 0; }
   footer { text-align: center; font-size: .8rem; color: var(--muted); margin-top: 24px; }
@@ -203,6 +212,11 @@
     <div class="card">
       <h2>🔥 Your progress, by the numbers</h2>
       <div id="facts"></div>
+    </div>
+
+    <div class="card share" id="shareCard"></div>
+    <div class="row" style="justify-content:center;margin:-4px 0 18px">
+      <button class="btn" id="shareBtn">📤 Share this card</button>
     </div>
 
     <div class="card">
@@ -636,6 +650,52 @@ const FIELD_BY_PLAN = id =>
   /cyt|cyo|cmp|csia/.test(id) ? "cyber" : /-ds/.test(id) ? "data" :
   /hls|safety|as-em/.test(id) ? "emergency" : /cis|umgc-cs|cne|wgu-it|swe/.test(id) ? "it" : "business";
 
+// Plain-English share card, built from your real numbers.
+function shareData() {
+  const plan = planById(state.plan), s = planStats(plan);
+  const jobs = (JOBS_BY_PLAN[plan.id] || []).map(k => JOBS[k]);
+  const topJob = jobs.sort((a, b) => b[1] - a[1])[0];
+  const trad = plan.level === "Associate's" ? 48 / 2 : 48;
+  return { plan, s, topJob, trad, pctNow: pct(s.done, plan.total), pctPlan: pct(s.planned, plan.total) };
+}
+
+function renderShare() {
+  const { plan, s, topJob, trad, pctNow, pctPlan } = shareData();
+  $("shareCard").innerHTML = `
+    <h2>🎓 How I'm getting my degree fast (and nearly free)</h2>
+    <div class="small">A ${plan.level.toLowerCase()} degree in <b>${esc(plan.name)}</b> from ${esc(plan.school)}, while I'm still in the Navy.</div>
+    <div class="grid">
+      <div class="tile"><b>${pctNow}%</b><span>already done before my first class</span></div>
+      <div class="tile"><b>${Math.round(s.done / 3)}</b><span>classes I'll never have to take</span></div>
+      <div class="tile"><b>${dur(s.months)}</b><span>to finish, instead of ${dur(trad)}</span></div>
+      <div class="tile"><b>${fmt(s.pay)}</b><span>what I pay; the Navy covers most tuition</span></div>
+    </div>
+    <div><b>How it works</b></div>
+    <ul>
+      <li><b>Navy training counts as college credit.</b> My military transcript (JST) gives me ${s.jst} ${unit(plan)}.</li>
+      <li><b>Sophia.org classes are online, self-paced and $99 a month.</b> The school accepts them as real classes. A class there costs a fraction of the $750 it costs at school.</li>
+      <li><b>The Navy pays tuition</b> (Tuition Assistance, up to $4,500 a year), and the Navy's own community college gives associate's degrees for free.</li>
+      <li>With ${s.k} more Sophia classes I'll be <b>${pctPlan}% done</b>, and I could finish around <b>${monthName(s.months)}</b>.</li>
+    </ul>
+    ${topJob ? `<p class="small" style="margin:12px 0 0">Jobs this degree leads to pay up to a <b>${fmt(topJob[1])}</b> US median (${esc(topJob[0].toLowerCase())}, Bureau of Labor Statistics).</p>` : ""}`;
+}
+
+function shareText() {
+  const { plan, s, topJob, trad, pctNow, pctPlan } = shareData();
+  return `🎓 How I'm getting my degree fast (and nearly free)
+${plan.level} in ${plan.name} (${plan.school}), while still in the Navy.
+
+• ${pctNow}% done before my first class
+• ${Math.round(s.done / 3)} classes I'll never have to take
+• ${dur(s.months)} to finish instead of ${dur(trad)}
+• About ${fmt(s.pay)} out of pocket; the Navy covers most tuition
+
+How: my Navy training counts as college credit, Sophia.org classes ($99/month, self-paced) transfer as real classes, and Navy Tuition Assistance pays tuition. ${s.k} more Sophia classes gets me to ${pctPlan}%.${topJob ? `
+Jobs it leads to: up to ${fmt(topJob[1])} median pay (${topJob[0]}, BLS).` : ""}
+
+${location.origin + location.pathname}`;
+}
+
 function renderCareer() {
   const mine = FIELD_BY_PLAN(state.plan);
   $("careerPaths").innerHTML = CAREER_PATHS.map(c => `
@@ -1027,6 +1087,7 @@ function renderAll() {
   renderCompare();
   renderMoney();
   renderCareer();
+  renderShare();
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === state.tab));
   ["plan", "sophia", "compare", "money", "career"].forEach(t => $("tab-" + t).hidden = t !== state.tab);
   save();
@@ -1067,6 +1128,16 @@ document.addEventListener("click", e => {
   else if (s) { state.sort = s; renderAll(); }
   else if (row) { state.plan = row.dataset.plan; state.tab = "plan"; renderAll(); window.scrollTo(0, 0); }
 });
+
+$("shareBtn").onclick = async () => {
+  const text = shareText();
+  try {
+    if (navigator.share) await navigator.share({ title: "My degree speedrun", text });
+    else { await navigator.clipboard.writeText(text); alert("Copied! Paste it into a text or message."); }
+  } catch (e) {
+    if (e && e.name !== "AbortError") prompt("Copy this:", text);
+  }
+};
 
 $("exportBtn").onclick = async () => {
   const text = JSON.stringify(state);
