@@ -74,6 +74,13 @@
   .bar { display: flex; height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 10px; }
   .bar > div { height: 100%; background: var(--good); transition: width .3s; }
   .bar > div + div { background: var(--accent); opacity: .35; }
+  .bar.big { height: 14px; }
+  .pctrow { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; font-size: .9rem; }
+  .pctrow b { font-size: 1.5rem; color: var(--good); }
+  .pctrow span { color: var(--muted); font-size: .85rem; }
+  .pct { font-weight: 700; color: var(--good); }
+  .brk { display: flex; justify-content: space-between; font-size: .88rem; padding: 5px 0; border-top: 1px dashed var(--line); }
+  .brk:first-child { border-top: none; }
   .legend { display: flex; gap: 14px; font-size: .78rem; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
   .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
 
@@ -156,11 +163,18 @@
         <div class="stat"><b id="sLeft"></b><span>left to take</span></div>
         <div class="stat"><b id="sPay"></b><span>you pay after TA</span></div>
       </div>
-      <div class="bar"><div id="barDone"></div><div id="barMore"></div></div>
+      <div class="pctrow"><b id="pctDone"></b><span id="pctMax"></span></div>
+      <div class="bar big"><div id="barDone"></div><div id="barMore"></div></div>
       <div class="legend">
         <span><i class="dot" style="background:var(--good)"></i>Done (Sophia + JST)</span>
         <span><i class="dot" style="background:var(--accent);opacity:.4"></i>Still possible with more Sophia</span>
       </div>
+      <div id="breakdown" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2 id="rulesHead"></h2>
+      <div id="rules"></div>
     </div>
 
     <div class="card">
@@ -355,6 +369,33 @@ const SOPHIA = [
   { id: "so-fin",   name: "Personal Finance",             cr: 3, umgc: "FINC 321", erau: "elec" }
 ];
 
+/* ==============================================================
+   SCHOOL TRANSFER RULES — shown on My Plan. "ok" = confirmed on the
+   school's own site; false = not confirmed, treat as an estimate.
+   ============================================================== */
+const SCHOOL_RULES = {
+  "WGU": [
+    ["Max transfer", "No fixed number, but only courses that match a specific WGU course count", true],
+    ["Since March 2026", "Only general-education and lower-division courses transfer. Upper-division courses must be taken at WGU", true],
+    ["Sophia", "Counts only where it matches a course in your program", true],
+    ["JST / military", "Counts only if it matches a specific WGU course, so most ABH credit won't count", true],
+    ["Timing", "All transcripts must be in before your start date. Nothing gets added after you start", true]
+  ],
+  "UMGC": [
+    ["Max transfer", "90 of 120 credits, from all sources combined", true],
+    ["Must take at UMGC", "30 credits, including half your major and 15 upper-level credits", true],
+    ["Sophia", "Official partner: each course transfers as a specific UMGC course", true],
+    ["JST / military", "Accepted using ACE recommendations. Usually fills gen-ed and elective credits", true],
+    ["Bonus at E-5", "Up to 3 extra credits for rank (6 at E-6 and above)", true]
+  ],
+  "Embry-Riddle": [
+    ["Max transfer", "About 90 credits (estimate, not confirmed)", false],
+    ["Must take at Embry-Riddle", "About 30 credits (estimate, not confirmed)", false],
+    ["Sophia", "Not a partner school. Reviewed case by case using ACE recommendations", true],
+    ["JST / military", "Follows ACE recommendations. Aviation training fits the Aeronautics degree best", true]
+  ]
+};
+
 /* Embry-Riddle gen-ed buckets (credits each one can hold). */
 const ERAU_BUCKETS = { comm: 9, math: 6, cs: 3, sci: 6, hss: 12, elec: 12 };
 const ERAU_LABELS = { comm: "Communication gen-ed", math: "Math gen-ed", cs: "Computer science gen-ed",
@@ -424,6 +465,7 @@ const fmt = n => "$" + Math.round(n).toLocaleString();
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const planById = id => PLANS.find(p => p.id === id) || PLANS[0];
 const unit = p => p.school === "WGU" ? "CU" : "credits";
+const pct = (a, b) => Math.round(100 * a / b);
 
 // What one Sophia course clears in one plan: { label, cr, kind: "yes"|"maybe", major } or null.
 function clearsIn(course, plan) {
@@ -506,7 +548,7 @@ function renderPlanSelect() {
   $("planSelect").innerHTML = groups.map(g =>
     `<optgroup label="${g}">` +
     PLANS.filter(p => p.school === g).map(p =>
-      `<option value="${p.id}" ${p.id === state.plan ? "selected" : ""}>${esc(p.school)} — ${esc(p.name)}</option>`).join("") +
+      `<option value="${p.id}" ${p.id === state.plan ? "selected" : ""}>${esc(p.school)} — ${esc(p.name)} (${pct(planStats(p).done, p.total)}% done)</option>`).join("") +
     `</optgroup>`).join("");
 }
 
@@ -519,6 +561,23 @@ function renderPlan() {
   $("sPay").textContent = fmt(s.pay);
   $("barDone").style.width = (100 * s.done / plan.total) + "%";
   $("barMore").style.width = (100 * (s.max - s.done) / plan.total) + "%";
+  $("pctDone").textContent = pct(s.done, plan.total) + "% done";
+  $("pctMax").textContent = `up to ${pct(s.max, plan.total)}% with every Sophia course that counts`;
+
+  // where the credit comes from, and the school's cap
+  const u = unit(plan);
+  const rawJst = Math.min(+state.jst || 0, 999), jstLost = rawJst - s.jst;
+  const capped = s.sophiaDone + s.jst > plan.maxTransfer;
+  $("breakdown").innerHTML = `
+    <div class="brk"><span>Sophia courses you've finished</span><b>${s.sophiaDone} ${u}</b></div>
+    <div class="brk"><span>JST credit this degree can use${jstLost > 0 ? ` <span class="muted">(${jstLost} of your ${rawJst} won't count here)</span>` : ""}</span><b>${s.jst} ${u}</b></div>
+    <div class="brk"><span>Transfer limit at ${esc(plan.school)}</span><b>${plan.maxTransfer === plan.total ? "course matches only" : plan.maxTransfer + " " + u}</b></div>
+    ${capped ? `<p class="small" style="color:var(--warn)">You've hit the transfer limit. The rest has to be taken at ${esc(plan.school)}.</p>` : ""}`;
+
+  $("rulesHead").textContent = `${plan.school} transfer rules`;
+  $("rules").innerHTML = SCHOOL_RULES[plan.school].map(([k, v, ok]) => `
+    <div class="brk"><span><b>${esc(k)}</b><br><span class="muted small">${esc(v)}</span></span>
+    <span class="tag ${ok ? "yes" : "maybe"}" style="align-self:flex-start">${ok ? "Confirmed" : "Estimate"}</span></div>`).join("");
 
   const best = coursesToTake(plan).slice(0, 5);
   $("bestList").innerHTML = best.length
@@ -598,7 +657,7 @@ function renderCompare() {
     <div class="item pick ${p.id === state.plan ? "current" : ""}" data-plan="${p.id}">
       <div class="main">
         <div class="school">${esc(p.school)} · ${"★".repeat(p.fit)}<span style="opacity:.3">${"★".repeat(3 - p.fit)}</span> cloud jobs</div>
-        <div class="name">${esc(p.name)}</div>
+        <div class="name">${esc(p.name)} <span class="pct">${pct(s.done, p.total)}%</span></div>
         <div class="bar" style="margin-top:6px;height:7px"><div style="width:${100 * s.done / p.total}%"></div><div style="width:${100 * (s.max - s.done) / p.total}%"></div></div>
         <div class="sub">${Math.round(100 * s.done / p.total)}% knocked off (up to ${Math.round(100 * s.max / p.total)}% with more Sophia) · ${s.left} ${unit(p)} left</div>
         <div class="sub" style="margin-top:4px"><b>Sophia to take:</b> ${(() => {
