@@ -189,6 +189,11 @@
   <!-- ===================== TAB 2: SOPHIA ===================== -->
   <section id="tab-sophia" hidden>
     <div class="card">
+      <h2>Safe picks: count in the most plans</h2>
+      <p class="small muted">Not sure which school yet? Take these first. They clear credit almost everywhere, and your JST stacks on top of them (JST counts most at UMGC and Embry-Riddle, barely at WGU).</p>
+      <div id="safeList"></div>
+    </div>
+    <div class="card">
       <h2 id="sophiaHead"></h2>
       <p class="small muted" id="sophiaSummary"></p>
       <div class="chips">
@@ -478,6 +483,21 @@ function planStats(plan) {
   return { sophiaDone, sophiaAll, jst, done, max, left, cost, ta, pace, pay: cost - ta };
 }
 
+// Sophia courses not taken yet that add credit to a plan, best first:
+// required major courses, then confirmed transfers, then bigger gains.
+// Two courses that clear the same thing only show once.
+function coursesToTake(plan) {
+  const base = sophiaCredit(plan, state.sophia).total;
+  return SOPHIA
+    .filter(c => !state.sophia.includes(c.id))
+    .map(c => ({ c, gain: sophiaCredit(plan, state.sophia.concat(c.id)).total - base, hit: clearsIn(c, plan) }))
+    .filter(x => x.gain > 0)
+    .sort((a, b) => (b.hit.major ? 1 : 0) - (a.hit.major ? 1 : 0) || (b.hit.kind === "yes") - (a.hit.kind === "yes")
+                    || plansCounted(b.c) - plansCounted(a.c) || b.gain - a.gain)
+    .filter((x, i, arr) => arr.findIndex(y => y.hit.key === x.hit.key) === i);
+}
+const plansCounted = c => PLANS.filter(p => clearsIn(c, p)).length;
+
 /* ==============================================================
    6. RENDER
    ============================================================== */
@@ -500,14 +520,7 @@ function renderPlan() {
   $("barDone").style.width = (100 * s.done / plan.total) + "%";
   $("barMore").style.width = (100 * (s.max - s.done) / plan.total) + "%";
 
-  // best untaken Sophia courses for this plan
-  const best = SOPHIA
-    .filter(c => !state.sophia.includes(c.id))
-    .map(c => ({ c, gain: sophiaCredit(plan, state.sophia.concat(c.id)).total - s.sophiaDone, hit: clearsIn(c, plan) }))
-    .filter(x => x.gain > 0)
-    .sort((a, b) => (b.hit.major ? 1 : 0) - (a.hit.major ? 1 : 0) || (b.hit.kind === "yes") - (a.hit.kind === "yes") || b.gain - a.gain)
-    .filter((x, i, arr) => !x.hit.key || arr.findIndex(y => y.hit.key === x.hit.key) === i)
-    .slice(0, 5);
+  const best = coursesToTake(plan).slice(0, 5);
   $("bestList").innerHTML = best.length
     ? best.map(x => `<div class="item"><div class="main"><div class="name">${esc(x.c.name)}</div>
         <div class="sub">Clears ${esc(x.hit.label)}</div></div>
@@ -541,7 +554,18 @@ function renderSophia() {
     `For ${plan.school} ${plan.name}: your courses clear ${s.sophiaDone} ${unit(plan)}. Taking every course that counts would clear ${s.sophiaAll}.`;
   document.querySelectorAll("[data-filter]").forEach(b => b.classList.toggle("on", b.dataset.filter === state.filter));
 
-  const planCount = c => PLANS.filter(p => clearsIn(c, p)).length;
+  const planCount = plansCounted;
+
+  // Safe picks: untaken courses that count in the most plans, so they
+  // stay useful whichever school/degree you end up choosing.
+  const safe = SOPHIA.filter(c => !state.sophia.includes(c.id))
+    .map(c => ({ c, n: planCount(c) }))
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 8);
+  $("safeList").innerHTML = safe.map(({ c, n }) => `
+    <div class="item"><div class="main"><div class="name">${esc(c.name)}</div>
+      <div class="bar" style="height:6px;margin-top:5px"><div style="width:${100 * n / PLANS.length}%"></div></div></div>
+      <div class="right"><b>${n}</b>/${PLANS.length} plans</div></div>`).join("");
   const detail = sophiaCredit(plan, state.sophia).detail;
   const coveredKeys = new Set(SOPHIA.filter(c => detail[c.id] !== undefined).map(c => clearsIn(c, plan).key));
   const rows = SOPHIA
@@ -577,6 +601,12 @@ function renderCompare() {
         <div class="name">${esc(p.name)}</div>
         <div class="bar" style="margin-top:6px;height:7px"><div style="width:${100 * s.done / p.total}%"></div><div style="width:${100 * (s.max - s.done) / p.total}%"></div></div>
         <div class="sub">${Math.round(100 * s.done / p.total)}% knocked off (up to ${Math.round(100 * s.max / p.total)}% with more Sophia) · ${s.left} ${unit(p)} left</div>
+        <div class="sub" style="margin-top:4px"><b>Sophia to take:</b> ${(() => {
+          const list = coursesToTake(p);
+          if (!list.length) return "none left";
+          const names = list.slice(0, 4).map(x => esc(x.c.name));
+          return names.join(", ") + (list.length > 4 ? ` +${list.length - 4} more` : "");
+        })()}</div>
       </div>
       <div class="right"><b style="font-size:1.05rem">${fmt(s.pay)}</b><div class="muted">you pay</div></div>
     </div>`).join("");
