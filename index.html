@@ -750,10 +750,13 @@ function renderPlan() {
   const trad = plan.level === "Associate's" ? 24 : 48;
   const taOnly = Math.ceil(fullClasses / 6 * 12);
   const fullCost = plan.school === "WGU" ? Math.ceil(trad / 6) * plan.term : plan.total * PER_CREDIT;
+  const zeroPace = s.sophiaMonths + (plan.school === "WGU" ? s.terms * 12 : Math.ceil(s.classesLeft / 6 * 12));
+  const zeroCost = s.sophiaCost + (plan.school === "WGU" ? Math.max(0, s.terms * (plan.term - TA_PER_YEAR)) : 0);
   $("vsTable").innerHTML = `
     <div class="brk"><span><b>🏃 Your speedrun</b><br><span class="muted small">${s.k} Sophia classes, then ${state.schoolPace}/month</span></span><b>${dur(s.months)} · ${fmt(s.pay)}</b></div>
     <div class="brk"><span>🎓 Traditional full-time<br><span class="muted small">${fullClasses} classes, no transfer credit</span></span><span>${dur(trad)} · ${fmt(fullCost)}</span></div>
-    <div class="brk"><span>🐢 Part-time on TA only<br><span class="muted small">~6 classes a year, what TA's $4,500 cap covers</span></span><span>${dur(taOnly)} · ${fmt(Math.max(0, fullCost - TA_PER_YEAR * Math.ceil(taOnly / 12)))}</span></div>`;
+    <div class="brk"><span>💸 Your credits, $0 pace<br><span class="muted small">same Sophia + JST, then ~6 classes a year so TA pays it all</span></span><span>${dur(zeroPace)} · ${fmt(zeroCost)}</span></div>
+    <div class="brk"><span>🐢 Part-time on TA only<br><span class="muted small">no transfer credit, ~6 classes a year</span></span><span>${dur(taOnly)} · ${fmt(Math.max(0, fullCost - TA_PER_YEAR * Math.ceil(taOnly / 12)))}</span></div>`;
   const perYear = state.schoolPace * 12;
   $("paceNote").textContent = plan.school === "WGU"
     ? `WGU charges per 6-month term, so more classes per month means fewer terms to pay for. TA ($4,500/yr) covers about one term a year.`
