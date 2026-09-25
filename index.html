@@ -118,9 +118,9 @@
   table { width: 100%; border-collapse: collapse; font-size: .88rem; }
   th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 8px; }
   td { padding: 10px 8px; border-top: 1px solid var(--line); vertical-align: top; }
-  tr.pick { cursor: pointer; }
-  tr.pick:hover td { background: var(--accent-soft); }
-  tr.current td { background: var(--good-soft); }
+  .item.pick { cursor: pointer; border-radius: 10px; padding-left: 8px; padding-right: 8px; }
+  .item.pick:hover { background: var(--accent-soft); }
+  .item.current { background: var(--good-soft); }
   .school { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 
   .note { background: var(--warn-soft); border-radius: 10px; padding: 10px 12px; font-size: .85rem; }
@@ -204,13 +204,13 @@
   <section id="tab-compare" hidden>
     <div class="card">
       <h2>Every degree plan, side by side</h2>
-      <p class="small muted">Uses your checked Sophia courses and JST number. Tap a row to make it your plan.</p>
+      <p class="small muted">Uses your checked Sophia courses and JST number. Green = knocked off, light blue = possible with more Sophia. "You pay" is after TA for the finish time you picked on My Plan. Tap a plan to make it yours.</p>
       <div class="chips">
         <button class="chip on" data-sort="pay">Cheapest first</button>
         <button class="chip" data-sort="done">Most knocked off</button>
         <button class="chip" data-sort="fit">Best for cloud jobs</button>
       </div>
-      <div class="scroll"><table id="cmpTable"></table></div>
+      <div id="cmpTable"></div>
     </div>
     <div class="card small">
       <p><b>How to read this.</b> "Knocked off" is what your Sophia courses and JST already clear. "Max" is how much you could clear by taking every Sophia course that counts. "You pay" is tuition left after TA ($4,500 per year) for the finish time you picked.</p>
@@ -556,8 +556,8 @@ function renderSophia() {
     return `<label class="item ${done ? "done" : ""}">
       <input type="checkbox" data-sophia="${c.id}" ${done ? "checked" : ""}>
       <div class="main"><div class="name">${esc(c.name)}</div>
-        <div class="sub">${c.cr} credits · counts in ${n} of ${PLANS.length} plans</div></div>
-      <div class="right">${tag}</div></label>`;
+        <div style="margin:3px 0">${tag}</div>
+        <div class="sub">${c.cr} credits · counts in ${n} of ${PLANS.length} plans</div></div></label>`;
   }).join("");
 }
 
@@ -568,17 +568,16 @@ function renderCompare() {
   rows.sort(state.sort === "pay" ? (a, b) => a.s.pay - b.s.pay || pct(b) - pct(a)
           : state.sort === "done" ? (a, b) => pct(b) - pct(a) || a.s.pay - b.s.pay
           : (a, b) => b.p.fit - a.p.fit || a.s.pay - b.s.pay);
-  $("cmpTable").innerHTML =
-    `<tr><th>Degree</th><th>Knocked off</th><th>Max</th><th>Left</th><th>You pay (${state.years} yr)</th><th>Cloud jobs</th></tr>` +
-    rows.map(({ p, s }) => `
-      <tr class="pick ${p.id === state.plan ? "current" : ""}" data-plan="${p.id}">
-        <td><div class="school">${esc(p.school)}</div><b>${esc(p.name)}</b></td>
-        <td><b>${Math.round(100 * s.done / p.total)}%</b><div class="small muted">${s.done}/${p.total}</div></td>
-        <td>${Math.round(100 * s.max / p.total)}%</td>
-        <td>${s.left} ${unit(p)}</td>
-        <td><b>${fmt(s.pay)}</b></td>
-        <td>${"★".repeat(p.fit)}<span class="muted">${"★".repeat(3 - p.fit)}</span></td>
-      </tr>`).join("");
+  $("cmpTable").innerHTML = rows.map(({ p, s }) => `
+    <div class="item pick ${p.id === state.plan ? "current" : ""}" data-plan="${p.id}">
+      <div class="main">
+        <div class="school">${esc(p.school)} · ${"★".repeat(p.fit)}<span style="opacity:.3">${"★".repeat(3 - p.fit)}</span> cloud jobs</div>
+        <div class="name">${esc(p.name)}</div>
+        <div class="bar" style="margin-top:6px;height:7px"><div style="width:${100 * s.done / p.total}%"></div><div style="width:${100 * (s.max - s.done) / p.total}%"></div></div>
+        <div class="sub">${Math.round(100 * s.done / p.total)}% knocked off (up to ${Math.round(100 * s.max / p.total)}% with more Sophia) · ${s.left} ${unit(p)} left</div>
+      </div>
+      <div class="right"><b style="font-size:1.05rem">${fmt(s.pay)}</b><div class="muted">you pay</div></div>
+    </div>`).join("");
 }
 
 function wonTotal() {
@@ -656,7 +655,7 @@ document.addEventListener("change", e => {
 
 document.addEventListener("click", e => {
   const f = e.target.dataset.filter, s = e.target.dataset.sort;
-  const row = e.target.closest("tr[data-plan]");
+  const row = e.target.closest("[data-plan]");
   if (f) { state.filter = f; renderAll(); }
   else if (s) { state.sort = s; renderAll(); }
   else if (row) { state.plan = row.dataset.plan; state.tab = "plan"; renderAll(); window.scrollTo(0, 0); }
