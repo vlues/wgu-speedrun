@@ -157,6 +157,7 @@
     <div id="nav">
       <a href="#doNow">🎯 Do next</a>
       <a href="#phases">📚 Courses</a>
+      <a href="#compare">🏫 Compare</a>
       <a href="#payout">💵 Payouts</a>
       <a href="#radar">⏰ Deadlines</a>
       <a href="#apps">📝 Applications</a>
@@ -175,6 +176,31 @@
   <!-- The route (phases + courses) renders here from the PLAN data below. -->
   <div id="phases"></div>
   <p><button id="addPhaseBtn" hidden>＋ Add phase</button></p>
+
+  <!-- School comparison: WGU vs Embry-Riddle vs UMGC, computed from the
+       SCHOOL_PLANS data in section 8 of the script. -->
+  <section id="compareSec">
+    <h2>Compare schools &amp; degree plans</h2>
+    <div class="box accent">
+      <p class="small muted">How much of each degree your credits can knock off, and what's left to pay for. Estimates only. Get a free unofficial evaluation from each school before you enroll.</p>
+      <div class="addForm">
+        <label><input type="checkbox" id="xSophia" checked> My 3 Sophia courses (9 credits)</label>
+        <label>JST credits <input class="tiny" id="xJst" type="number" min="0" max="60" value="24"></label>
+        <label><input type="checkbox" id="xMax"> Max out Sophia/CLEP before enrolling</label>
+        <label>Finish in
+          <select id="xYears"><option>1</option><option selected>2</option><option>3</option><option>4</option></select> years
+        </label>
+      </div>
+      <p class="small muted">JST default = Navy ABH3 with ~5 years: about 6 credits from boot camp, 3 from A-school, 15 from the ABH3 rating itself (almost all lower-division). Real JSTs range about 21–33. Check yours free at jst.doded.mil and type your real number in.</p>
+      <div style="overflow-x:auto"><table id="cmpTable"></table></div>
+      <ul class="small">
+        <li><b>Why WGU wins on speed:</b> TA pays at most $4,500 a year. Per-credit schools ($250/credit) get about 18 credits a year from that. WGU's flat term price lets you pass as many courses as you can for the same money.</li>
+        <li><b>Why UMGC wins on credit transfer:</b> it's an official Sophia partner (your 3 courses map 1:1), takes up to 90 of 120 credits, and has on-base offices across Europe.</li>
+        <li><b>Why Embry-Riddle fits your rating:</b> BS Aeronautics is built to absorb aviation training like yours. But Sophia isn't a confirmed partner there, so Sophia credit goes through a regular transcript review.</li>
+        <li><b>The catch with the most-transfer degrees:</b> General Studies and Aeronautics take the most credit, but they say less "cloud engineer" on a resume than a cloud/IT degree does. Your certs make up a lot of that gap.</li>
+      </ul>
+    </div>
+  </section>
 
   <!-- Guide sections (only shown for the built-in WGU plan). -->
   <div id="guide"></div>
@@ -651,9 +677,11 @@ const OPEN_DEFAULT = new Set([
   "Payout board — biggest first",
   "Deadline radar",
   "Application tracker",
-  "Out-of-pocket calculator"
+  "Out-of-pocket calculator",
+  "Compare schools & degree plans"
 ]);
-const SEC_IDS = { "Payout board — biggest first": "payout", "Deadline radar": "radar",
+const SEC_IDS = { "Compare schools & degree plans": "compare",
+                  "Payout board — biggest first": "payout", "Deadline radar": "radar",
                   "Application tracker": "apps", "Out-of-pocket calculator": "calc" };
 const secOpen = {};   // per-session memory of which sections the user opened/closed
 
@@ -693,6 +721,7 @@ function updateDoNow() {
 
 render();
 collapsify($("moneySec"));
+collapsify($("compareSec"));
 
 /* ==============================================================
    5. OUT-OF-POCKET CALCULATOR
@@ -839,6 +868,90 @@ $("deadlineBox").innerHTML = DEADLINES
   .join("") || '<p class="muted">No upcoming deadlines on the radar.</p>';
 window.DEADLINES_ARR = DEADLINES;
 updateDoNow();
+
+/* ==============================================================
+   8. SCHOOL COMPARISON — estimates researched Sept 2026.
+   total:     credits the degree needs
+   sophia:    how many of the 9 completed Sophia credits count
+   jstMax:    most JST credit the degree can realistically absorb
+   floorMax:  credits still left if you max out Sophia/CLEP first
+              (limited by transfer caps / residency rules)
+   sophiaMo:  months of Sophia ($99/mo) the "max out" route takes
+   pay:       "flat" = WGU $4,125 per 6-month term; "credit" = $250/credit
+   fit:       how well the degree reads for a cloud/IT career
+   ============================================================== */
+const SCHOOL_PLANS = [
+  { school: "WGU", degree: "BS Cloud & Network Engineering", total: 109, sophia: 9, jstMax: 4, floorMax: 78, sophiaMo: 3, pay: "flat",
+    fit: "★★★ Cloud degree + 7 certs", note: "JST barely counts: only credit that matches a specific WGU course transfers." },
+  { school: "UMGC", degree: "BS General Studies", total: 120, sophia: 9, jstMax: 33, floorMax: 30, sophiaMo: 6, pay: "credit",
+    fit: "★ Generic degree", note: "Most transfer-friendly: 49 open elective credits. Official Sophia partner." },
+  { school: "UMGC", degree: "BS Computer Information Systems", total: 120, sophia: 9, jstMax: 33, floorMax: 45, sophiaMo: 5, pay: "credit",
+    fit: "★★ IT degree", note: "Your Sophia IT + Stats courses hit required courses. JST fills the 43 elective credits." },
+  { school: "UMGC", degree: "BS Cybersecurity Technology", total: 120, sophia: 9, jstMax: 24, floorMax: 50, sophiaMo: 5, pay: "credit",
+    fit: "★★★ Cyber/cloud security", note: "Bigger required major, so fewer electives for JST credit." },
+  { school: "Embry-Riddle", degree: "BS Aeronautics", total: 121, sophia: 9, jstMax: 33, floorMax: 61, sophiaMo: 4, pay: "credit",
+    fit: "★ Aviation degree", note: "Built to absorb aviation training like ABH credit. Sophia is a regular transcript review, not a 1:1 partner." },
+  { school: "Embry-Riddle", degree: "BS Emergency Services", total: 120, sophia: 9, jstMax: 33, floorMax: 60, sophiaMo: 4, pay: "credit",
+    fit: "★ Fire/emergency degree", note: "Your firefighting and fire suppression credit maps straight in." },
+  { school: "Embry-Riddle", degree: "BS Technical Management", total: 120, sophia: 9, jstMax: 24, floorMax: 60, sophiaMo: 4, pay: "credit",
+    fit: "★★ Management degree", note: "Safety and supervision credit fits. More JST applies once you make E-5." },
+  { school: "Embry-Riddle", degree: "BS Cyber Intelligence & Security", total: 120, sophia: 9, jstMax: 9, floorMax: 70, sophiaMo: 4, pay: "credit",
+    fit: "★★★ Cyber degree", note: "ABH credit mostly doesn't fit, so it becomes a few electives at best." }
+];
+const TA_PER_YEAR = 4500, PER_CREDIT = 250, WGU_TERM = 4125, CU_PER_TERM = 40;
+
+function renderCompare() {
+  const useSophia = $("xSophia").checked, useMax = $("xMax").checked;
+  const jst = Math.max(0, +$("xJst").value || 0), years = +$("xYears").value;
+
+  const rows = SCHOOL_PLANS.map(p => {
+    const inFromJst = Math.min(jst, p.jstMax);
+    const inFromSophia = useSophia ? p.sophia : 0;
+    let left = p.total - inFromSophia - inFromJst;
+    if (useMax) left = Math.min(left, p.floorMax);
+    const transferred = p.total - left;
+    const sophiaCost = useMax ? p.sophiaMo * 99 : 0;
+
+    let cost, taPace;
+    if (p.pay === "flat") {
+      const terms = Math.max(1, Math.ceil(left / CU_PER_TERM));
+      cost = terms * WGU_TERM;
+      taPace = `~${terms} yr (one $4,125 term per TA year)`;
+    } else {
+      cost = left * PER_CREDIT;
+      taPace = `~${(left / (TA_PER_YEAR / PER_CREDIT)).toFixed(1)} yr`;
+    }
+    const ta = Math.min(cost, TA_PER_YEAR * years);
+    const out = cost - ta + sophiaCost;
+    return { p, left, transferred, out, taPace };
+  }).sort((a, b) => a.out - b.out || a.left - b.left);
+
+  $("cmpTable").innerHTML =
+    `<tr><th>Degree</th><th>Knocked off</th><th>Left to take</th><th>$0 pace (TA only)</th><th>You pay (finish in ${years} yr)</th><th>Cloud-career fit</th></tr>` +
+    rows.map((r, i) => `
+      <tr class="${i === 0 ? "hot" : ""}">
+        <td><b>${esc(r.p.school)}</b><br>${esc(r.p.degree)}<br><span class="muted small">${esc(r.p.note)}</span></td>
+        <td>${r.transferred} of ${r.p.total}<br><span class="muted small">${Math.round(100 * r.transferred / r.p.total)}%</span></td>
+        <td>${r.left} ${r.p.pay === "flat" ? "CU" : "credits"}</td>
+        <td>${r.taPace}</td>
+        <td><b>${fmt(r.out)}</b></td>
+        <td>${esc(r.p.fit)}</td>
+      </tr>`).join("");
+}
+
+// remember the comparison settings like everything else
+const CMP_FIELDS = ["xSophia", "xJst", "xMax", "xYears"];
+CMP_FIELDS.forEach(id => {
+  const el = $(id), saved = (state.cmp || {})[id];
+  if (saved !== undefined) el.type === "checkbox" ? el.checked = saved : el.value = saved;
+});
+$("compareSec").addEventListener("input", () => {
+  state.cmp = {};
+  CMP_FIELDS.forEach(id => state.cmp[id] = $(id).type === "checkbox" ? $(id).checked : $(id).value);
+  save();
+  renderCompare();
+});
+renderCompare();
 </script>
 </body>
 </html>
