@@ -543,6 +543,7 @@ function renderSophia() {
 
   const planCount = c => PLANS.filter(p => clearsIn(c, p)).length;
   const detail = sophiaCredit(plan, state.sophia).detail;
+  const coveredKeys = new Set(SOPHIA.filter(c => detail[c.id] !== undefined).map(c => clearsIn(c, plan).key));
   const rows = SOPHIA
     .map(c => ({ c, hit: clearsIn(c, plan), n: planCount(c), done: state.sophia.includes(c.id) }))
     .filter(x => state.filter === "all" || x.hit)
@@ -551,7 +552,8 @@ function renderSophia() {
   $("sophiaList").innerHTML = rows.map(({ c, hit, n, done }) => {
     let tag;
     if (!hit) tag = `<span class="tag no">Doesn't count here</span>`;
-    else if (done && detail[c.id] === undefined) tag = `<span class="tag no">Already covered</span>`;
+    else if ((done && detail[c.id] === undefined) || (!done && coveredKeys.has(hit.key)))
+      tag = `<span class="tag no">Already covered by another course</span>`;
     else tag = `<span class="tag ${hit.major ? "major" : hit.kind}">${hit.kind === "maybe" ? "Likely · " : ""}${esc(hit.label)}</span>`;
     return `<label class="item ${done ? "done" : ""}">
       <input type="checkbox" data-sophia="${c.id}" ${done ? "checked" : ""}>
