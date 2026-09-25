@@ -130,6 +130,14 @@
   .item.current { background: var(--good-soft); }
   .school { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 
+  .slider { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; margin: 12px 0; font-size: .9rem; }
+  .slider b { color: var(--accent); }
+  .slider input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+  .timeline { display: flex; height: 34px; border-radius: 10px; overflow: hidden; margin: 14px 0 4px; font-size: .75rem; font-weight: 700; color: #fff; }
+  .timeline div { display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden; padding: 0 6px; }
+  .fact { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); }
+  .fact:first-child { border-top: none; }
+  .fact .big { font-size: 1.3rem; font-weight: 800; color: var(--good); min-width: 88px; }
   .note { background: var(--warn-soft); border-radius: 10px; padding: 10px 12px; font-size: .85rem; }
   ol.steps { padding-left: 0; list-style: none; margin: 0; }
   footer { text-align: center; font-size: .8rem; color: var(--muted); margin-top: 24px; }
@@ -159,17 +167,47 @@
       <select class="big" id="planSelect"></select>
       <p class="small muted" id="planNote"></p>
       <div class="stats">
-        <div class="stat"><b id="sDone"></b><span>knocked off</span></div>
-        <div class="stat"><b id="sLeft"></b><span>left to take</span></div>
-        <div class="stat"><b id="sPay"></b><span>you pay after TA</span></div>
+        <div class="stat"><b id="sDone"></b><span>knocked off now</span></div>
+        <div class="stat"><b id="sLeft"></b><span>classes left after Sophia</span></div>
+        <div class="stat"><b id="sFinish"></b><span>finish date</span></div>
       </div>
       <div class="pctrow"><b id="pctDone"></b><span id="pctMax"></span></div>
       <div class="bar big"><div id="barDone"></div><div id="barMore"></div></div>
       <div class="legend">
-        <span><i class="dot" style="background:var(--good)"></i>Done (Sophia + JST)</span>
-        <span><i class="dot" style="background:var(--accent);opacity:.4"></i>Still possible with more Sophia</span>
+        <span><i class="dot" style="background:var(--good)"></i>Done now (Sophia + JST)</span>
+        <span><i class="dot" style="background:var(--accent);opacity:.4"></i>After your planned Sophia classes</span>
       </div>
       <div id="breakdown" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2>⚡ Speedrun calculator</h2>
+      <div class="chips">
+        <button class="chip" data-preset="chill">😌 Chill</button>
+        <button class="chip" data-preset="steady">🚶 Steady</button>
+        <button class="chip" data-preset="speed">🏃 Speedrun</button>
+      </div>
+      <div class="slider"><label for="moreSophia">More Sophia classes before enrolling</label><b id="moreSophiaV"></b>
+        <input type="range" id="moreSophia" min="0" max="30"></div>
+      <div class="slider"><label for="sophiaPace">Sophia classes per month</label><b id="sophiaPaceV"></b>
+        <input type="range" id="sophiaPace" min="1" max="8"></div>
+      <div class="slider"><label for="schoolPace">School classes per month</label><b id="schoolPaceV"></b>
+        <input type="range" id="schoolPace" min="1" max="6"></div>
+      <div class="timeline" id="timeline"></div>
+      <div class="stats" id="calcStats"></div>
+      <div id="vsTable"></div>
+      <p class="small muted" id="paceNote"></p>
+    </div>
+
+    <div class="card">
+      <h2>🔥 Your progress, by the numbers</h2>
+      <div id="facts"></div>
+    </div>
+
+    <div class="card">
+      <h2>💼 Where this degree can take you</h2>
+      <div id="jobs"></div>
+      <p class="small muted">Median US pay, May 2025, from the <a href="https://www.bls.gov/ooh/" target="_blank" rel="noopener">Bureau of Labor Statistics</a>. Half of workers earn more, half less. Your certs and security clearance can push you higher.</p>
     </div>
 
     <div class="card">
@@ -189,14 +227,9 @@
     </div>
 
     <div class="card">
-      <h2>Your numbers</h2>
-      <div class="row">
-        <label class="field">JST credits<br><input type="number" id="jst" min="0" max="90"></label>
-        <label class="field">Finish in<br>
-          <select id="years"><option value="1">1 year</option><option value="2">2 years</option><option value="3">3 years</option><option value="4">4 years</option></select>
-        </label>
-      </div>
-      <p class="small muted">JST default is 24, an estimate for a Navy ABH3 with about 5 years (boot camp ~6, A-school ~3, the ABH3 rating ~15). Get your real number free at <a href="https://jst.doded.mil" target="_blank" rel="noopener">jst.doded.mil</a>.</p>
+      <h2>Your JST</h2>
+      <label class="field">JST credits<br><input type="number" id="jst" min="0" max="90"></label>
+      <p class="small muted">Default is 24, an estimate for a Navy ABH3 with about 5 years (boot camp ~6, A-school ~3, the ABH3 rating ~15). Get your real number free at <a href="https://jst.doded.mil" target="_blank" rel="noopener">jst.doded.mil</a>.</p>
     </div>
   </section>
 
@@ -223,7 +256,7 @@
   <section id="tab-compare" hidden>
     <div class="card">
       <h2>Every degree plan, side by side</h2>
-      <p class="small muted">Uses your checked Sophia courses and JST number. Green = knocked off, light blue = possible with more Sophia. "You pay" is after TA for the finish time you picked on My Plan. Tap a plan to make it yours.</p>
+      <p class="small muted">Uses your checked Sophia courses and JST number. Green = knocked off, light blue = possible with more Sophia. Time and cost use the pace you set in the speedrun calculator on My Plan. Tap a plan to make it yours.</p>
       <div class="chips">
         <button class="chip on" data-sort="pay">Cheapest first</button>
         <button class="chip" data-sort="done">Most knocked off</button>
@@ -232,7 +265,7 @@
       <div id="cmpTable"></div>
     </div>
     <div class="card small">
-      <p><b>How to read this.</b> "Knocked off" is what your Sophia courses and JST already clear. "Max" is how much you could clear by taking every Sophia course that counts. "You pay" is tuition left after TA ($4,500 per year) for the finish time you picked.</p>
+      <p><b>How to read this.</b> "Done now" is what your Sophia courses and JST already clear. "After your Sophia plan" adds the extra Sophia classes you set in the calculator. "You pay" is tuition left after TA ($4,500 per year) plus Sophia fees.</p>
       <p><b>WGU</b> charges a flat price per 6-month term, so finishing fast is cheap. <b>UMGC</b> and <b>Embry-Riddle</b> charge $250 per credit, which TA covers fully, but TA only pays for about 18 credits a year.</p>
       <p><b>UMGC</b> is an official Sophia partner and takes up to 90 transfer credits. <b>Embry-Riddle</b> isn't a Sophia partner, so its Sophia numbers are estimates. Get a free unofficial evaluation from any school before you pick.</p>
     </div>
@@ -280,93 +313,141 @@
    fit:         1–3 stars for how well it reads for a cloud/IT job
    ============================================================== */
 const PLANS = [
-  { id: "wgu-cne",  school: "WGU", name: "Cloud & Network Engineering", total: 109, term: 4125, jstMax: 4, maxTransfer: 81, fit: 3,
-    note: "Cloud degree with 7 certs included (A+, Network+, Security+, Cloud+, Linux, ITIL).", url: "https://www.wgu.edu/online-it-degrees/cloud-network-engineering-bachelors-program.html" },
-  { id: "wgu-it",   school: "WGU", name: "Information Technology", total: 120, approx: true, term: 4125, jstMax: 0, maxTransfer: 90, fit: 3,
-    note: "Broad IT degree with certs built in.", url: "https://www.wgu.edu/online-it-degrees/information-technology-bachelors-program.html" },
-  { id: "wgu-csia", school: "WGU", name: "Cybersecurity & Information Assurance", total: 120, approx: true, term: 4625, jstMax: 0, maxTransfer: 90, fit: 3,
-    note: "Security degree packed with certs. Higher term price.", url: "https://www.wgu.edu/online-it-degrees/cybersecurity-information-assurance-bachelors-program.html" },
-  { id: "wgu-swe",  school: "WGU", name: "Software Engineering", total: 120, approx: true, term: 4325, jstMax: 0, maxTransfer: 90, fit: 2,
-    note: "Coding-heavy. Few Sophia courses count.", url: "https://www.wgu.edu/online-it-degrees/software-engineering-bachelors-program.html" },
-  { id: "wgu-mgmt", school: "WGU", name: "Business Management", total: 120, approx: true, term: 4050, jstMax: 0, maxTransfer: 90, fit: 1,
-    note: "Business degree. Many business Sophia courses count.", url: "https://www.wgu.edu/online-business-degrees/business-management-bachelors-program.html" },
-
-  { id: "umgc-cyt", school: "UMGC", name: "Cybersecurity Technology", total: 120, jstMax: 30, maxTransfer: 90, fit: 3,
+  // ---------- UMGC (offices on bases across Europe) ----------
+  { id: "umgc-cyt", school: "UMGC", level: "Bachelor's", name: "Cybersecurity Technology", total: 120, slots: 78, jstMax: 30, maxTransfer: 90, fit: 3,
     note: "Hands-on security, includes cloud courses. Official Sophia partner.", url: "https://www.umgc.edu/online-degrees/bachelors/cybersecurity-technology" },
-  { id: "umgc-cyo", school: "UMGC", name: "Cyber Operations", total: 120, jstMax: 33, maxTransfer: 90, fit: 3,
+  { id: "umgc-cyo", school: "UMGC", level: "Bachelor's", name: "Cyber Operations", total: 120, slots: 87, jstMax: 33, maxTransfer: 90, fit: 3,
     note: "Networking and defense focus. 46 elective credits.", url: "https://www.umgc.edu/online-degrees/bachelors/cyber-operations" },
-  { id: "umgc-cis", school: "UMGC", name: "Computer Information Systems", total: 120, jstMax: 33, maxTransfer: 90, fit: 2,
+  { id: "umgc-cis", school: "UMGC", level: "Bachelor's", name: "Computer Information Systems", total: 120, slots: 84, jstMax: 33, maxTransfer: 90, fit: 2,
     note: "IT degree with 43 elective credits for JST.", url: "https://www.umgc.edu/online-degrees/bachelors/computer-information-systems" },
-  { id: "umgc-cmp", school: "UMGC", name: "Cybersecurity Management & Policy", total: 120, jstMax: 33, maxTransfer: 90, fit: 2,
+  { id: "umgc-cmp", school: "UMGC", level: "Bachelor's", name: "Cybersecurity Management & Policy", total: 120, slots: 87, jstMax: 33, maxTransfer: 90, fit: 2,
     note: "Security leadership, less hands-on.", url: "https://www.umgc.edu/online-degrees/bachelors/cybersecurity-management-policy" },
-  { id: "umgc-cs",  school: "UMGC", name: "Computer Science", total: 120, jstMax: 30, maxTransfer: 90, fit: 2,
+  { id: "umgc-cs",  school: "UMGC", level: "Bachelor's", name: "Computer Science", total: 120, slots: 78, jstMax: 30, maxTransfer: 90, fit: 2,
     note: "Math-heavy programming degree.", url: "https://www.umgc.edu/online-degrees/bachelors/computer-science" },
-  { id: "umgc-ds",  school: "UMGC", name: "Data Science", total: 120, jstMax: 33, maxTransfer: 90, fit: 2,
+  { id: "umgc-ds",  school: "UMGC", level: "Bachelor's", name: "Data Science", total: 120, slots: 81, jstMax: 33, maxTransfer: 90, fit: 2,
     note: "Statistics and data. Your Stats course hits a required course.", url: "https://www.umgc.edu/online-degrees/bachelors/data-science" },
-  { id: "umgc-bam", school: "UMGC", name: "Business Administration & Management", total: 120, jstMax: 28, maxTransfer: 90, fit: 1,
+  { id: "umgc-bam", school: "UMGC", level: "Bachelor's", name: "Business Administration & Management", total: 120, slots: 54, jstMax: 28, maxTransfer: 90, fit: 1,
     note: "Business degree. Lots of Sophia business courses count.", url: "https://www.umgc.edu/online-degrees/bachelors/business-administration-management" },
-  { id: "umgc-hls", school: "UMGC", name: "Homeland Security", total: 120, jstMax: 33, maxTransfer: 90, fit: 1,
+  { id: "umgc-hls", school: "UMGC", level: "Bachelor's", name: "Homeland Security", total: 120, slots: 87, jstMax: 33, maxTransfer: 90, fit: 1,
     note: "Security/emergency management. Good fit for military experience.", url: "https://www.umgc.edu/online-degrees/bachelors/homeland-security" },
-  { id: "umgc-gs",  school: "UMGC", name: "General Studies", total: 120, jstMax: 33, maxTransfer: 90, fit: 1,
+  { id: "umgc-gs",  school: "UMGC", level: "Bachelor's", name: "General Studies", total: 120, slots: 90, jstMax: 33, maxTransfer: 90, fit: 1,
     note: "Takes the most transfer credit of any plan (49 electives). Generic on a resume.", url: "https://www.umgc.edu/online-degrees/bachelors/general-studies" },
+  { id: "umgc-aa",  school: "UMGC", level: "Associate's", name: "General Studies (Associate of Arts)", total: 60, slots: 45, jstMax: 21, maxTransfer: 45, fit: 1,
+    note: "60 credits; up to 45 can transfer in, 15 taken at UMGC. Every credit rolls into a UMGC bachelor's later.", url: "https://www.umgc.edu/online-degrees/associates/general-studies" },
 
-  { id: "erau-aero", school: "Embry-Riddle", name: "Aeronautics", total: 121, jstMax: 33, maxTransfer: 90, fit: 1,
-    note: "Built to take aviation training like ABH credit. Sophia isn't a partner, so it's case by case.", url: "https://erau.edu/degrees/bachelor/aeronautics" },
-  { id: "erau-es",   school: "Embry-Riddle", name: "Emergency Services", total: 120, jstMax: 33, maxTransfer: 90, fit: 1,
-    note: "Your firefighting credit maps straight in.", url: "https://erau.edu/degrees/bachelor/emergency-services" },
-  { id: "erau-tm",   school: "Embry-Riddle", name: "Technical Management", total: 120, jstMax: 24, maxTransfer: 90, fit: 2,
-    note: "Management with a technical angle. More JST counts once you make E-5.", url: "https://erau.edu/degrees" },
-  { id: "erau-cis",  school: "Embry-Riddle", name: "Cyber Intelligence & Security", total: 120, jstMax: 9, maxTransfer: 90, fit: 3,
-    note: "Cyber degree. ABH credit mostly doesn't fit.", url: "https://erau.edu/degrees/bachelor/cyber-intelligence-security" },
-  { id: "erau-aba",  school: "Embry-Riddle", name: "Aviation Business Administration", total: 120, jstMax: 18, maxTransfer: 90, fit: 1,
-    note: "Business degree with an aviation angle.", url: "https://erau.edu/degrees/bachelor/aviation-business-administration" }
+  // ---------- Embry-Riddle Worldwide (online-offered degrees only) ----------
+  { id: "erau-aero", school: "Embry-Riddle", level: "Bachelor's", name: "Aeronautics", total: 121, jstMax: 33, maxTransfer: 90, fit: 1,
+    note: "Built to take aviation training like ABH credit: over a quarter of the degree can come from military training.", url: "https://erau.edu/degrees/bachelor/aeronautics" },
+  { id: "erau-safety", school: "Embry-Riddle", level: "Bachelor's", name: "Aviation Safety", total: 120, jstMax: 33, maxTransfer: 90, fit: 1,
+    note: "Your safety, firefighting and flight-deck credit fits naturally.", url: "https://erau.edu/degrees/bachelor/aviation-safety" },
+  { id: "erau-hls", school: "Embry-Riddle", level: "Bachelor's", name: "Homeland Security", total: 120, jstMax: 24, maxTransfer: 90, fit: 1,
+    note: "Security and emergency response.", url: "https://erau.edu/degrees/bachelor/homeland-security" },
+  { id: "erau-is",  school: "Embry-Riddle", level: "Bachelor's", name: "Interdisciplinary Studies", total: 120, jstMax: 33, maxTransfer: 90, fit: 1,
+    note: "Most flexible Embry-Riddle degree, so the most transfer credit fits.", url: "https://erau.edu/degrees/bachelor/interdisciplinary-studies" },
+  { id: "erau-ds",  school: "Embry-Riddle", level: "Bachelor's", name: "Data Science", total: 120, jstMax: 9, maxTransfer: 90, fit: 2,
+    note: "The only computer-focused Embry-Riddle degree offered online. ABH credit mostly doesn't fit.", url: "https://erau.edu/degrees/bachelor/data-science" },
+  { id: "erau-aba", school: "Embry-Riddle", level: "Bachelor's", name: "Aviation Business Administration", total: 120, jstMax: 18, maxTransfer: 90, fit: 1,
+    note: "Business degree with an aviation angle.", url: "https://erau.edu/degrees/bachelor/aviation-business-administration" },
+  { id: "erau-as-aero", school: "Embry-Riddle", level: "Associate's", name: "Aeronautics (Associate in Science)", total: 60, jstMax: 30, maxTransfer: 45, fit: 1,
+    note: "60 credits; last 15 taken at Embry-Riddle. Over a quarter can come from military training. Rolls into the BS Aeronautics.", url: "https://erau.edu/degrees/associate/aeronautics" },
+  { id: "erau-as-em", school: "Embry-Riddle", level: "Associate's", name: "Emergency Management (Associate of Science)", total: 60, jstMax: 24, maxTransfer: 45, fit: 1,
+    note: "60 credits. Firefighting and safety credit fits.", url: "https://erau.edu/degrees?level=associate&campus=ww" },
+  { id: "erau-as-aba", school: "Embry-Riddle", level: "Associate's", name: "Aviation Business Administration (Associate in Science)", total: 60, jstMax: 15, maxTransfer: 45, fit: 1,
+    note: "60 credits. Business basics with an aviation angle.", url: "https://erau.edu/degrees?level=associate&campus=ww" },
+
+  // ---------- WGU (fully online, flat price per 6-month term) ----------
+  { id: "wgu-cne",  school: "WGU", level: "Bachelor's", name: "Cloud & Network Engineering", total: 109, term: 4125, jstMax: 0, maxTransfer: 81, fit: 3,
+    note: "Cloud degree with 7 certs included (A+, Network+, Security+, Cloud+, Linux, ITIL).", url: "https://www.wgu.edu/online-it-degrees/cloud-network-engineering-bachelors-program.html" },
+  { id: "wgu-it",   school: "WGU", level: "Bachelor's", name: "Information Technology", total: 120, approx: true, term: 4125, jstMax: 0, maxTransfer: 90, fit: 3,
+    note: "Broad IT degree with certs built in. 35 courses.", url: "https://www.wgu.edu/online-it-degrees/information-technology-bachelors-program.html" },
+  { id: "wgu-csia", school: "WGU", level: "Bachelor's", name: "Cybersecurity & Information Assurance", total: 120, approx: true, term: 4625, jstMax: 0, maxTransfer: 90, fit: 3,
+    note: "Security degree packed with certs. 37 courses, higher term price.", url: "https://www.wgu.edu/online-it-degrees/cybersecurity-information-assurance-bachelors-program.html" },
+  { id: "wgu-swe",  school: "WGU", level: "Bachelor's", name: "Software Engineering", total: 120, approx: true, term: 4325, jstMax: 0, maxTransfer: 90, fit: 2,
+    note: "Coding-heavy, 39 courses. Few Sophia courses count.", url: "https://www.wgu.edu/online-it-degrees/software-engineering-bachelors-program.html" },
+  { id: "wgu-mgmt", school: "WGU", level: "Bachelor's", name: "Business Management", total: 120, approx: true, term: 4050, jstMax: 0, maxTransfer: 90, fit: 1,
+    note: "Business degree, 36 courses. Many business Sophia courses count.", url: "https://www.wgu.edu/online-business-degrees/business-management-bachelors-program.html" }
 ];
 
 /* ==============================================================
    2. SOPHIA COURSES and what each one clears
-   umgc:  the UMGC course it transfers as (official Sophia partner list)
+   umgc:  UMGC course it transfers as (umgc.sophia.org partner list)
    major: UMGC plans where it hits a REQUIRED major course
-   wgu:   [WGU course it clears, [WGU plans it counts in], confirmed?]
+   wgu:   list of [WGU plans, WGU course it clears, confirmed?]
+          confirmed = on Sophia's WGU partner page AND in that program's
+          current course list (checked Sept 2026)
    erau:  Embry-Riddle gen-ed bucket it would likely fill
    Ids starting "so-" match the old site so saved progress carries over.
    ============================================================== */
-const W_TECH = ["wgu-cne", "wgu-it", "wgu-csia"];
-const W_ALL  = ["wgu-cne", "wgu-it", "wgu-csia", "wgu-swe", "wgu-mgmt"];
+const CNE = "wgu-cne", IT = "wgu-it", CSIA = "wgu-csia", SWE = "wgu-swe", MGMT = "wgu-mgmt";
+const W_ALL = [CNE, IT, CSIA, SWE, MGMT];
+const GEO = "Introduction to Physical and Human Geography";
 
 const SOPHIA = [
-  { id: "so-eng",   name: "English Composition I",        cr: 3, umgc: "WRTG 111", wgu: ["Composition: Successful Self-Expression", W_ALL, true], erau: "comm" },
-  { id: "so-stats", name: "Introduction to Statistics",   cr: 3, umgc: "STAT 200", major: ["umgc-ds", "umgc-cs"], wgu: ["Applied Probability and Statistics", W_TECH, true], erau: "math" },
-  { id: "so-it",    name: "Introduction to Information Technology", cr: 3, umgc: "IFSM 201", major: ["umgc-cis"], wgu: ["Introduction to IT", ["wgu-cne", "wgu-it", "wgu-csia", "wgu-swe"], true], erau: "cs" },
-  { id: "so-alg",   name: "College Algebra",              cr: 3, umgc: "MATH 107", wgu: ["Applied Algebra", W_TECH, true], erau: "math" },
-  { id: "so-sci",   name: "Environmental Science",        cr: 3, umgc: "BIOL 211", wgu: ["Integrated Physical Sciences", W_TECH, true], erau: "sci" },
-  { id: "so-db",    name: "Introduction to Relational Databases", cr: 3, umgc: "CMIS 320", wgu: ["Data Management – Foundations", ["wgu-cne", "wgu-it", "wgu-csia", "wgu-swe"], true], erau: "elec" },
-  { id: "so-py",    name: "Introduction to Python Programming", cr: 3, umgc: "CMIS 102", wgu: ["Foundations of Programming (Python)", ["wgu-cne"], false], erau: "cs" },
-  { id: "so-mgmt",  name: "Principles of Management",     cr: 3, umgc: "BMGT 364", major: ["umgc-bam"], wgu: ["IT Leadership Foundations", ["wgu-cne", "wgu-it"], false], erau: "elec" },
-  { id: "so-hist",  name: "U.S. History I",               cr: 3, umgc: "HIST 156", wgu: ["US History: Stories of American Democracy", ["wgu-cne"], false], erau: "hss" },
-  { id: "so-net",   name: "Introduction to Networking",   cr: 3, umgc: "CMIT 265", major: ["umgc-cyt", "umgc-cmp", "umgc-cyo"], erau: "elec" },
-  { id: "so-eng2",  name: "English Composition II",       cr: 3, umgc: "WRTG 112", erau: "comm" },
-  { id: "so-speech",name: "Public Speaking",              cr: 3, umgc: "SPCH 100", wgu: ["Introduction to Communication", ["wgu-it", "wgu-csia", "wgu-mgmt"], false], erau: "comm" },
-  { id: "so-crit",  name: "Critical Thinking",            cr: 3, umgc: "PHIL 110", wgu: ["Critical Thinking: Reason and Evidence", ["wgu-it", "wgu-csia", "wgu-mgmt"], false], erau: "hss" },
-  { id: "so-java",  name: "Introduction to Java Programming", cr: 3, umgc: "CMIS 141", wgu: ["Scripting and Programming – Foundations", ["wgu-it", "wgu-swe"], false], erau: "cs" },
-  { id: "so-web",   name: "Introduction to Web Development", cr: 3, umgc: "CMST 385", wgu: ["Web Development Foundations", ["wgu-it", "wgu-swe"], false], erau: "elec" },
-  { id: "so-calc",  name: "Calculus I",                   cr: 4, umgc: "MATH 140", major: ["umgc-cs"], wgu: ["Calculus I", ["wgu-swe"], true], erau: "math" },
-  { id: "so-precalc", name: "Precalculus",                cr: 3, umgc: "MATH 115", erau: "math" },
-  { id: "so-bizdata", name: "Business Data Analytics",    cr: 3, umgc: "DATA 320", major: ["umgc-ds"], erau: "elec" },
-  { id: "so-pm",    name: "Project Management",           cr: 3, umgc: "BMGT 487", erau: "elec" },
-  { id: "so-lead",  name: "Principles of Leadership",     cr: 3, umgc: "BMGT 365", major: ["umgc-bam"], erau: "elec" },
-  { id: "so-bus",   name: "Introduction to Business",     cr: 3, umgc: "BMGT 110", major: ["umgc-bam"], erau: "elec" },
-  { id: "so-acct",  name: "Financial Accounting",         cr: 3, umgc: "ACCT 220", major: ["umgc-bam"], wgu: ["Principles of Accounting", ["wgu-mgmt"], false], erau: "elec" },
-  { id: "so-macro", name: "Macroeconomics",               cr: 3, umgc: "ECON 201", major: ["umgc-bam"], wgu: ["Macroeconomics", ["wgu-mgmt"], false], erau: "hss" },
-  { id: "so-micro", name: "Microeconomics",               cr: 3, umgc: "ECON 203", major: ["umgc-bam"], erau: "hss" },
-  { id: "so-psych", name: "Introduction to Psychology",   cr: 3, umgc: "PSYC 100", erau: "hss" },
-  { id: "so-soc",   name: "Introduction to Sociology",    cr: 3, umgc: "SOCY 100", wgu: ["Introduction to Sociology", ["wgu-mgmt"], true], erau: "hss" },
-  { id: "so-gov",   name: "U.S. Government",              cr: 3, umgc: "GVPT 170", erau: "hss" },
-  { id: "so-hist2", name: "U.S. History II",              cr: 3, umgc: "HIST 157", erau: "hss" },
-  { id: "so-bio",   name: "Human Biology",                cr: 3, umgc: "BIOL 160", wgu: ["Integrated Physical Sciences", W_TECH, true], erau: "sci" },
-  { id: "so-chem",  name: "Introduction to Chemistry",    cr: 3, umgc: "CHEM 121", erau: "sci" },
-  { id: "so-span",  name: "Spanish I",                    cr: 3, umgc: "SPAN 111", erau: "hss" },
-  { id: "so-ethics",name: "Introduction to Ethics",       cr: 3, umgc: "PHIL elective", erau: "hss" },
-  { id: "so-fin",   name: "Personal Finance",             cr: 3, umgc: "FINC 321", erau: "elec" }
+  { id: "so-eng",   name: "English Composition I", cr: 3, umgc: "WRTG 111", erau: "comm",
+    wgu: [[W_ALL, "Composition: Successful Self-Expression", true]] },
+  { id: "so-stats", name: "Introduction to Statistics", cr: 3, umgc: "STAT 200", major: ["umgc-ds", "umgc-cs"], erau: "math",
+    wgu: [[W_ALL, "Applied Probability and Statistics", true]] },
+  { id: "so-nutr",  name: "Introduction to Nutrition", cr: 3, umgc: "NUTR 100", erau: "elec",
+    wgu: [[W_ALL, "Health, Fitness, and Wellness", true]] },
+  { id: "so-it",    name: "Introduction to Information Technology", cr: 3, umgc: "IFSM 201", major: ["umgc-cis"], erau: "cs",
+    wgu: [[[CNE, IT, CSIA], "Introduction to IT", true]] },
+  { id: "so-alg",   name: "College Algebra", cr: 3, umgc: "MATH 107", erau: "math",
+    wgu: [[[CNE, IT, CSIA], "Applied Algebra", true]] },
+  { id: "so-db",    name: "Introduction to Relational Databases", cr: 3, umgc: "CMIS 320", erau: "elec",
+    wgu: [[[CNE, IT, CSIA, SWE], "Data Management – Foundations", true]] },
+  { id: "so-crit",  name: "Critical Thinking", cr: 3, umgc: "PHIL 110", erau: "hss",
+    wgu: [[[IT, CSIA, MGMT], "Critical Thinking: Reason and Evidence", true]] },
+  { id: "so-sci",   name: "Environmental Science", cr: 3, umgc: "BIOL 211", erau: "sci",
+    wgu: [[[CNE, MGMT], "Integrated Physical Sciences", true]] },
+  { id: "so-py",    name: "Introduction to Python Programming", cr: 3, umgc: "CMIS 102", erau: "cs",
+    wgu: [[[CNE, IT, CSIA], "Foundations of Programming (Python)", false]] },
+  { id: "so-mgmt",  name: "Principles of Management", cr: 3, umgc: "BMGT 364", major: ["umgc-bam"], erau: "elec",
+    wgu: [[[CNE, SWE], "IT Leadership Foundations", true], [[MGMT], "Principles of Management", true]] },
+  { id: "so-speech",name: "Public Speaking", cr: 3, umgc: "SPCH 100", erau: "comm",
+    wgu: [[[CSIA, MGMT], "Introduction to Communication: Connecting with Others", true]] },
+  { id: "so-hist",  name: "U.S. History I", cr: 3, umgc: "HIST 156", erau: "hss",
+    wgu: [[[CNE], "US History: Stories of American Democracy", false],
+          [[MGMT], "World History: Diverse Cultures and Global Connections", true], [[SWE], GEO, true]] },
+  { id: "so-net",   name: "Introduction to Networking", cr: 3, umgc: "CMIT 265", major: ["umgc-cyt", "umgc-cmp", "umgc-cyo"], erau: "elec" },
+  { id: "so-biolab",name: "Human Biology Lab", cr: 1, umgc: "BIOL 161", erau: "sci",
+    wgu: [[[IT, CSIA], "Natural Science Lab", true]] },
+  { id: "so-pm",    name: "Project Management", cr: 3, umgc: "BMGT 487", erau: "elec",
+    wgu: [[[IT, CSIA], "Business of IT – Project Management", false], [[MGMT], "Project Management", false]] },
+  { id: "so-ethics",name: "Introduction to Ethics", cr: 3, umgc: "PHIL elective", erau: "hss",
+    wgu: [[[IT], "Global Arts and Humanities", true]] },
+  { id: "so-web",   name: "Introduction to Web Development", cr: 3, umgc: "CMST 385", erau: "elec",
+    wgu: [[[SWE], "Web Development Foundations", true]] },
+  { id: "so-soc",   name: "Introduction to Sociology", cr: 3, umgc: "SOCY 100", erau: "hss",
+    wgu: [[[MGMT], "Introduction to Sociology", true], [[SWE], GEO, true]] },
+  { id: "so-macro", name: "Macroeconomics", cr: 3, umgc: "ECON 201", major: ["umgc-bam"], erau: "hss",
+    wgu: [[[MGMT], "Principles of Economics", true], [[SWE], GEO, true]] },
+  { id: "so-law",   name: "Business Law", cr: 3, umgc: "BMGT 380", major: ["umgc-bam"], erau: "elec",
+    wgu: [[[MGMT], "Business Environment Applications I", true]] },
+  { id: "so-eng2",  name: "English Composition II", cr: 3, umgc: "WRTG 112", erau: "comm",
+    wgu: [[[CNE, CSIA, SWE, MGMT], "Composition: Successful Self-Expression", true]] },
+  { id: "so-calc",  name: "Calculus I", cr: 4, umgc: "MATH 140", major: ["umgc-cs"], erau: "math",
+    wgu: [[[CNE, IT, CSIA], "Applied Algebra", true]] },
+  { id: "so-precalc", name: "Precalculus", cr: 3, umgc: "MATH 115", erau: "math",
+    wgu: [[[CNE, IT, CSIA], "Applied Algebra", true]] },
+  { id: "so-bio",   name: "Human Biology", cr: 3, umgc: "BIOL 160", erau: "sci",
+    wgu: [[[CNE, MGMT], "Integrated Physical Sciences", true]] },
+  { id: "so-chem",  name: "Introduction to Chemistry", cr: 3, umgc: "CHEM 121", erau: "sci",
+    wgu: [[[CNE, MGMT], "Integrated Physical Sciences", true]] },
+  { id: "so-micro", name: "Microeconomics", cr: 3, umgc: "ECON 203", major: ["umgc-bam"], erau: "hss",
+    wgu: [[[MGMT], "Principles of Economics", true], [[SWE], GEO, true]] },
+  { id: "so-psych", name: "Introduction to Psychology", cr: 3, umgc: "PSYC 100", erau: "hss",
+    wgu: [[[SWE], GEO, true]] },
+  { id: "so-hist2", name: "U.S. History II", cr: 3, umgc: "HIST 157", erau: "hss",
+    wgu: [[[CNE], "US History: Stories of American Democracy", false],
+          [[MGMT], "World History: Diverse Cultures and Global Connections", true], [[SWE], GEO, true]] },
+  { id: "so-java",  name: "Introduction to Java Programming", cr: 3, umgc: "CMIS 141", erau: "cs" },
+  { id: "so-bizdata", name: "Business Data Analytics", cr: 3, umgc: "DATA 320", major: ["umgc-ds"], erau: "elec" },
+  { id: "so-lead",  name: "Principles of Leadership", cr: 3, umgc: "BMGT 365", major: ["umgc-bam"], erau: "elec" },
+  { id: "so-bus",   name: "Introduction to Business", cr: 3, umgc: "BMGT 110", major: ["umgc-bam"], erau: "elec" },
+  { id: "so-acct",  name: "Financial Accounting", cr: 3, umgc: "ACCT 220", major: ["umgc-bam"], erau: "elec" },
+  { id: "so-gov",   name: "U.S. Government", cr: 3, umgc: "GVPT 170", erau: "hss" },
+  { id: "so-span",  name: "Spanish I", cr: 3, umgc: "SPAN 111", erau: "hss" },
+  { id: "so-fin",   name: "Personal Finance", cr: 3, umgc: "FINC 321", erau: "elec" }
 ];
 
 /* ==============================================================
@@ -439,15 +520,48 @@ const DEADLINES = [
 const TA_PER_YEAR = 4500, PER_CREDIT = 250, CU_PER_TERM = 40;
 
 /* ==============================================================
+   JOBS each degree leads to — BLS median pay, May 2025 (verified at
+   bls.gov/ooh, Sept 2026). growth = projected 2025–2035.
+   ============================================================== */
+const JOBS = {
+  netsupport: ["Computer network support specialist", 76220, "Associate's is typical"],
+  sysadmin:   ["Network & computer systems administrator", 99130, "−4% growth"],
+  architect:  ["Computer network architect", 134050, "+8% growth"],
+  infosec:    ["Information security analyst", 129180, "+21% growth, much faster than average"],
+  data:       ["Data scientist", 120230, "+35% growth, much faster than average"],
+  emergency:  ["Emergency management director", 93330, "+4% growth"],
+  analyst:    ["Management analyst", 101860, "+10% growth"]
+};
+const JOBS_BY_PLAN = {
+  "umgc-cyt": ["infosec", "sysadmin", "architect"], "umgc-cyo": ["infosec", "sysadmin", "architect"],
+  "umgc-cmp": ["infosec", "analyst"], "umgc-cis": ["sysadmin", "architect", "netsupport"],
+  "umgc-cs": ["sysadmin", "architect", "data"], "umgc-ds": ["data", "analyst"],
+  "umgc-bam": ["analyst"], "umgc-hls": ["emergency", "infosec"], "umgc-gs": ["analyst", "netsupport"],
+  "umgc-aa": ["netsupport"],
+  "erau-aero": ["analyst", "emergency"], "erau-safety": ["emergency", "analyst"], "erau-hls": ["emergency", "infosec"],
+  "erau-is": ["analyst", "netsupport"], "erau-ds": ["data", "analyst"], "erau-aba": ["analyst"],
+  "erau-as-aero": ["netsupport"], "erau-as-em": ["emergency"], "erau-as-aba": ["analyst"],
+  "wgu-cne": ["sysadmin", "architect", "infosec"], "wgu-it": ["sysadmin", "netsupport", "architect"],
+  "wgu-csia": ["infosec", "sysadmin"], "wgu-swe": ["data", "sysadmin"], "wgu-mgmt": ["analyst"]
+};
+
+/* Calculator presets: [more Sophia classes, Sophia classes/month, school classes/month] */
+const PRESETS = { chill: [4, 2, 1], steady: [8, 3, 2], speed: [15, 5, 4] };
+
+/* ==============================================================
    4. SAVED STATE (localStorage). Carries over progress from the
    old version of the site the first time it loads.
    ============================================================== */
 const KEY = "degree-speedrun-v2";
-let state = { plan: "wgu-cne", sophia: ["so-eng", "so-stats", "so-it"], jst: 24, years: 2, pell: 0,
+let state = { plan: "umgc-cyt", sophia: ["so-eng", "so-stats", "so-it"], jst: 24, pell: 0,
+              moreSophia: 8, sophiaPace: 3, schoolPace: 2,
               steps: [], apps: {}, tab: "plan", filter: "mine", sort: "pay" };
 try {
   const saved = JSON.parse(localStorage.getItem(KEY));
-  if (saved) Object.assign(state, saved);
+  if (saved) {
+    Object.assign(state, saved);
+    if (!saved.v3) { state.plan = "umgc-cyt"; state.v3 = true; }   // focus moved to UMGC / Embry-Riddle
+  }
   else {
     const old = JSON.parse(localStorage.getItem("degree-speedrun-v1")) || {};
     const oldDone = (old.progress || {})["wgu-bscne"] || [];
@@ -471,8 +585,9 @@ const pct = (a, b) => Math.round(100 * a / b);
 // What one Sophia course clears in one plan: { label, cr, kind: "yes"|"maybe", major } or null.
 function clearsIn(course, plan) {
   if (plan.school === "WGU") {
-    if (!course.wgu || !course.wgu[1].includes(plan.id)) return null;
-    return { label: course.wgu[0], key: course.wgu[0], cr: 3, kind: course.wgu[2] ? "yes" : "maybe" };
+    const m = (course.wgu || []).find(([plans]) => plans.includes(plan.id));
+    if (!m) return null;
+    return { label: m[1], key: m[1], cr: course.cr === 1 ? 1 : 3, kind: m[2] ? "yes" : "maybe" };
   }
   if (plan.school === "UMGC") {
     const major = (course.major || []).includes(plan.id);
@@ -485,7 +600,7 @@ function clearsIn(course, plan) {
 // Embry-Riddle gen-ed buckets capped). Returns total + per-course detail.
 function sophiaCredit(plan, ids) {
   const used = new Set(), buckets = {};
-  let total = 0;
+  let total = 0, major = 0;
   const detail = {};
   SOPHIA.filter(c => ids.includes(c.id)).forEach(c => {
     const hit = clearsIn(c, plan);
@@ -499,82 +614,174 @@ function sophiaCredit(plan, ids) {
     }
     used.add(hit.key);
     total += cr;
+    if (hit.major) major += cr;
     detail[c.id] = cr;
   });
-  return { total, detail };
+  return { total, major, detail };
 }
 
-// Full picture for one plan with the user's current numbers.
-function planStats(plan) {
-  const sophiaDone = sophiaCredit(plan, state.sophia).total;
-  const sophiaAll = sophiaCredit(plan, SOPHIA.map(c => c.id)).total;
+// Credits a plan accepts from a set of Sophia courses plus your JST.
+// Gen-ed/elective credit can't exceed the degree's open slots (UMGC),
+// and nothing can exceed the school's transfer limit.
+function transferIn(plan, sophiaIds) {
+  const s = sophiaCredit(plan, sophiaIds);
   const jst = Math.min(+state.jst || 0, plan.jstMax);
-  const done = Math.min(plan.maxTransfer, sophiaDone + jst);
-  const max = Math.min(plan.maxTransfer, sophiaAll + jst);
-  const left = plan.total - done;
+  let open = s.total - s.major + jst;
+  if (plan.slots) open = Math.min(open, plan.slots);
+  return { sophia: s.total, jst, done: Math.min(plan.maxTransfer, open + s.major) };
+}
 
-  let cost, pace;
-  if (plan.school === "WGU") {
-    const terms = Math.max(1, Math.ceil(left / CU_PER_TERM));
-    cost = terms * plan.term;
-    pace = `${terms} terms at 40 CU each`;
-  } else {
-    cost = left * PER_CREDIT;
-    pace = `~${(left / (TA_PER_YEAR / PER_CREDIT)).toFixed(1)} yrs if TA pays it all`;
+// Full picture for one plan: where you are now, and the timeline/cost
+// if you take N more Sophia classes and then finish at the school.
+function planStats(plan) {
+  const now = transferIn(plan, state.sophia);
+  const all = transferIn(plan, state.sophia.concat(SOPHIA.map(c => c.id)));
+  const useful = coursesToTake(plan);
+  const k = Math.min(state.moreSophia, useful.length);
+  const planned = transferIn(plan, state.sophia.concat(useful.slice(0, k).map(x => x.c.id)));
+
+  const left = plan.total - planned.done;
+  const classesLeft = Math.ceil(left / 3);
+  const sophiaMonths = k ? Math.ceil(k / state.sophiaPace) : 0;
+  const schoolMonths = Math.max(1, Math.ceil(classesLeft / state.schoolPace));
+  const terms = Math.ceil(schoolMonths / 6);
+  const cost = plan.school === "WGU" ? terms * plan.term : left * PER_CREDIT;
+  const taYears = Math.ceil(schoolMonths / 12);
+  const ta = Math.min(cost, TA_PER_YEAR * taYears);
+  const sophiaCost = sophiaMonths * 99;
+
+  return {
+    sophiaDone: now.sophia, sophiaAll: all.sophia, jst: now.jst,
+    done: now.done, max: all.done, planned: planned.done, useful: useful.length, k,
+    left, classesLeft, sophiaMonths, schoolMonths, terms, taYears,
+    months: sophiaMonths + schoolMonths, cost, ta, sophiaCost, pay: Math.max(0, cost - ta) + sophiaCost
+  };
+}
+
+// Fewest extra Sophia classes to reach a % of the degree (null if impossible).
+function classesToReach(plan, target) {
+  const useful = coursesToTake(plan);
+  for (let k = 0; k <= useful.length; k++) {
+    const d = transferIn(plan, state.sophia.concat(useful.slice(0, k).map(x => x.c.id))).done;
+    if (d / plan.total >= target) return k;
   }
-  const ta = Math.min(cost, TA_PER_YEAR * state.years);
-  return { sophiaDone, sophiaAll, jst, done, max, left, cost, ta, pace, pay: cost - ta };
+  return null;
 }
 
 // Sophia courses not taken yet that add credit to a plan, best first:
 // required major courses, then confirmed transfers, then bigger gains.
 // Two courses that clear the same thing only show once.
 function coursesToTake(plan) {
-  const base = sophiaCredit(plan, state.sophia).total;
-  return SOPHIA
+  const cacheKey = plan.id + "|" + state.sophia.join(",") + "|" + state.jst;
+  if (takeCache[cacheKey]) return takeCache[cacheKey];
+  const base = transferIn(plan, state.sophia).done;
+  return takeCache[cacheKey] = SOPHIA
     .filter(c => !state.sophia.includes(c.id))
-    .map(c => ({ c, gain: sophiaCredit(plan, state.sophia.concat(c.id)).total - base, hit: clearsIn(c, plan) }))
+    .map(c => ({ c, gain: transferIn(plan, state.sophia.concat(c.id)).done - base, hit: clearsIn(c, plan) }))
     .filter(x => x.gain > 0)
     .sort((a, b) => (b.hit.major ? 1 : 0) - (a.hit.major ? 1 : 0) || (b.hit.kind === "yes") - (a.hit.kind === "yes")
                     || plansCounted(b.c) - plansCounted(a.c) || b.gain - a.gain)
     .filter((x, i, arr) => arr.findIndex(y => y.hit.key === x.hit.key) === i);
 }
 const plansCounted = c => PLANS.filter(p => clearsIn(c, p)).length;
+const takeCache = {};
 
 /* ==============================================================
    6. RENDER
    ============================================================== */
 function renderPlanSelect() {
-  const groups = ["WGU", "UMGC", "Embry-Riddle"];
-  $("planSelect").innerHTML = groups.map(g =>
-    `<optgroup label="${g}">` +
-    PLANS.filter(p => p.school === g).map(p =>
-      `<option value="${p.id}" ${p.id === state.plan ? "selected" : ""}>${esc(p.school)} — ${esc(p.name)} (${pct(planStats(p).done, p.total)}% done)</option>`).join("") +
+  const groups = [["UMGC", "Bachelor's"], ["UMGC", "Associate's"], ["Embry-Riddle", "Bachelor's"],
+                  ["Embry-Riddle", "Associate's"], ["WGU", "Bachelor's"]];
+  $("planSelect").innerHTML = groups.map(([school, level]) =>
+    `<optgroup label="${school} — ${level} degrees">` +
+    PLANS.filter(p => p.school === school && p.level === level).map(p =>
+      `<option value="${p.id}" ${p.id === state.plan ? "selected" : ""}>${esc(p.name)} · ${pct(planStats(p).done, p.total)}% done</option>`).join("") +
     `</optgroup>`).join("");
 }
 
-function renderPlan() {
-  const plan = planById(state.plan), s = planStats(plan);
-  $("planLine").textContent = `${plan.school} · ${plan.name} · ${s.done}/${plan.total} ${unit(plan)} knocked off`;
-  $("planNote").innerHTML = `${esc(plan.note)} ${plan.approx ? "Total credits are approximate." : ""} <a href="${plan.url}" target="_blank" rel="noopener">Program page ↗</a>`;
-  $("sDone").textContent = `${s.done} ${unit(plan)}`;
-  $("sLeft").textContent = `${s.left} ${unit(plan)}`;
-  $("sPay").textContent = fmt(s.pay);
-  $("barDone").style.width = (100 * s.done / plan.total) + "%";
-  $("barMore").style.width = (100 * (s.max - s.done) / plan.total) + "%";
-  $("pctDone").textContent = pct(s.done, plan.total) + "% done";
-  $("pctMax").textContent = `up to ${pct(s.max, plan.total)}% with every Sophia course that counts`;
+const monthName = m => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + m); return d.toLocaleDateString("en-US", { month: "short", year: "numeric" }); };
+const dur = m => m < 12 ? `${m} mo` : `${(m / 12).toFixed(1).replace(".0", "")} yrs`;
 
-  // where the credit comes from, and the school's cap
-  const u = unit(plan);
-  const rawJst = Math.min(+state.jst || 0, 999), jstLost = rawJst - s.jst;
-  const capped = s.sophiaDone + s.jst > plan.maxTransfer;
+function renderPlan() {
+  const plan = planById(state.plan), s = planStats(plan), u = unit(plan);
+  $("planLine").textContent = `${plan.school} · ${plan.level} · ${plan.name} · ${pct(s.done, plan.total)}% done`;
+  $("planNote").innerHTML = `<b>${esc(plan.level)} degree · ${plan.total} ${u}.</b> ${esc(plan.note)} ${plan.approx ? "Total credits are approximate." : ""} <a href="${plan.url}" target="_blank" rel="noopener">Program page ↗</a>`;
+
+  // top card
+  $("sDone").textContent = pct(s.done, plan.total) + "%";
+  $("sLeft").textContent = s.classesLeft;
+  $("sFinish").textContent = monthName(s.months);
+  $("barDone").style.width = (100 * s.done / plan.total) + "%";
+  $("barMore").style.width = (100 * (s.planned - s.done) / plan.total) + "%";
+  $("pctDone").textContent = pct(s.done, plan.total) + "% done";
+  $("pctMax").textContent = s.k
+    ? `→ ${pct(s.planned, plan.total)}% after ${s.k} more Sophia classes (max ${pct(s.max, plan.total)}%)`
+    : `max ${pct(s.max, plan.total)}% with every Sophia course that counts`;
+
+  const rawJst = +state.jst || 0, jstLost = rawJst - s.jst;
   $("breakdown").innerHTML = `
     <div class="brk"><span>Sophia courses you've finished</span><b>${s.sophiaDone} ${u}</b></div>
     <div class="brk"><span>JST credit this degree can use${jstLost > 0 ? ` <span class="muted">(${jstLost} of your ${rawJst} won't count here)</span>` : ""}</span><b>${s.jst} ${u}</b></div>
-    <div class="brk"><span>Transfer limit at ${esc(plan.school)}</span><b>${plan.maxTransfer} ${u}</b></div>
-    ${capped ? `<p class="small" style="color:var(--warn)">You've hit the transfer limit. The rest has to be taken at ${esc(plan.school)}.</p>` : ""}`;
+    <div class="brk"><span>Most ${esc(plan.school)} accepts from outside</span><b>${plan.maxTransfer} of ${plan.total} ${u}</b></div>
+    ${s.planned >= plan.maxTransfer ? `<p class="small" style="color:var(--warn)">Your plan hits the transfer limit. Everything after that has to be taken at ${esc(plan.school)}.</p>` : ""}`;
 
+  // calculator
+  $("moreSophia").max = s.useful;
+  $("moreSophia").value = s.k;
+  $("moreSophiaV").textContent = s.useful ? `${s.k} of ${s.useful} that count` : "none left that count";
+  $("sophiaPace").value = state.sophiaPace; $("sophiaPaceV").textContent = state.sophiaPace + " / month";
+  $("schoolPace").value = state.schoolPace; $("schoolPaceV").textContent = state.schoolPace + " / month";
+  document.querySelectorAll("[data-preset]").forEach(b => {
+    const [m, a, c] = PRESETS[b.dataset.preset];
+    b.classList.toggle("on", Math.min(m, s.useful) === s.k && a === state.sophiaPace && c === state.schoolPace);
+  });
+
+  const total = Math.max(1, s.months);
+  $("timeline").innerHTML =
+    (s.sophiaMonths ? `<div style="width:${100 * s.sophiaMonths / total}%;background:var(--warn)">Sophia ${s.sophiaMonths} mo</div>` : "") +
+    `<div style="width:${100 * s.schoolMonths / total}%;background:var(--accent)">${esc(plan.school)} ${dur(s.schoolMonths)}</div>`;
+  $("calcStats").innerHTML = `
+    <div class="stat"><b>${monthName(s.months)}</b><span>finish (${dur(s.months)})</span></div>
+    <div class="stat"><b>${s.classesLeft}</b><span>classes at ${esc(plan.school)}</span></div>
+    <div class="stat"><b>${fmt(s.pay)}</b><span>you pay after TA</span></div>`;
+
+  // speedrun vs the usual routes (same school, no Sophia or JST)
+  const fullClasses = Math.ceil(plan.total / 3);
+  const trad = plan.level === "Associate's" ? 24 : 48;
+  const taOnly = Math.ceil(fullClasses / 6 * 12);
+  const fullCost = plan.school === "WGU" ? Math.ceil(trad / 6) * plan.term : plan.total * PER_CREDIT;
+  $("vsTable").innerHTML = `
+    <div class="brk"><span><b>🏃 Your speedrun</b><br><span class="muted small">${s.k} Sophia classes, then ${state.schoolPace}/month</span></span><b>${dur(s.months)} · ${fmt(s.pay)}</b></div>
+    <div class="brk"><span>🎓 Traditional full-time<br><span class="muted small">${fullClasses} classes, no transfer credit</span></span><span>${dur(trad)} · ${fmt(fullCost)}</span></div>
+    <div class="brk"><span>🐢 Part-time on TA only<br><span class="muted small">~6 classes a year, what TA's $4,500 cap covers</span></span><span>${dur(taOnly)} · ${fmt(Math.max(0, fullCost - TA_PER_YEAR * Math.ceil(taOnly / 12)))}</span></div>`;
+  const perYear = state.schoolPace * 12;
+  $("paceNote").textContent = plan.school === "WGU"
+    ? `WGU charges per 6-month term, so more classes per month means fewer terms to pay for. TA ($4,500/yr) covers about one term a year.`
+    : `TA covers about 6 classes a year at $250/credit. At ${perYear} classes a year, the rest comes out of pocket (already counted in "you pay"). Pell and scholarships on the Money tab can cover it.`;
+
+  // motivation, all computed from your real numbers
+  const saved = s.done * PER_CREDIT;
+  const sophiaTuition = s.sophiaDone * PER_CREDIT;
+  const facts = [
+    [pct(s.done, plan.total) + "%", `of this ${plan.level.toLowerCase()} degree is done before you've taken a single class at ${plan.school}.`],
+    [Math.round(s.done / 3), `classes you'll never have to sit through (${s.done} ${u}).`],
+    [fmt(saved), `of tuition you've already avoided, at the $250/credit military rate.`],
+    [fmt(sophiaTuition), `is what your ${state.sophia.length} Sophia courses would cost as ${plan.school} classes. On Sophia they cost about $99 a month.`],
+    s.jst ? [s.jst + " " + u, `come free from your JST, for training the Navy already gave you.`] : null,
+    s.k ? ["+" + (pct(s.planned, plan.total) - pct(s.done, plan.total)) + "%", `more from your ${s.k} planned Sophia classes, in about ${s.sophiaMonths} months.`] : null,
+    [dur(Math.max(0, trad - s.months)), `faster than the traditional ${dur(trad)} route, at your calculator pace.`]
+  ].filter(Boolean);
+  $("facts").innerHTML = facts.map(([big, text]) => `<div class="fact"><div class="big">${big}</div><div>${text}</div></div>`).join("");
+
+  // jobs
+  $("jobs").innerHTML = (JOBS_BY_PLAN[plan.id] || []).map(k => {
+    const [title, pay, note] = JOBS[k];
+    return `<div class="item"><div class="main"><div class="name">${esc(title)}</div><div class="sub">${esc(note)}</div></div>
+      <div class="right"><b style="font-size:1.05rem">${fmt(pay)}</b><div class="muted">median / yr</div></div></div>`;
+  }).join("") + (plan.level === "Associate's"
+    ? `<p class="small muted">Most jobs above the help-desk level list a bachelor's as the typical entry education. An associate's gets you started and every credit rolls into a bachelor's.</p>` : "");
+
+  // rules, best courses, steps
   $("rulesHead").textContent = `${plan.school} transfer rules`;
   $("rules").innerHTML = SCHOOL_RULES[plan.school].map(([k, v, ok]) => `
     <div class="brk"><span><b>${esc(k)}</b><br><span class="muted small">${esc(v)}</span></span>
@@ -584,13 +791,12 @@ function renderPlan() {
   $("bestList").innerHTML = best.length
     ? best.map(x => `<div class="item"><div class="main"><div class="name">${esc(x.c.name)}</div>
         <div class="sub">Clears ${esc(x.hit.label)}</div></div>
-        <div class="right"><span class="tag ${x.hit.major ? "major" : x.hit.kind}">+${x.gain} ${unit(plan)}</span></div></div>`).join("")
+        <div class="right"><span class="tag ${x.hit.major ? "major" : x.hit.kind}">+${x.gain} ${u}</span></div></div>`).join("")
     : `<p class="muted small">You've taken every Sophia course that counts for this plan. 🎉</p>`;
 
-  // steps
   const STEPS = [
-    ["st-jst", "Get your JST", `Free at jst.doded.mil. Put your real credit number in "Your numbers" below.`],
-    ["st-sophia", "Finish the Sophia courses that count", `${Math.max(0, s.sophiaAll - s.sophiaDone)} more ${unit(plan)} are possible for this plan. Do these before you enroll.`],
+    ["st-jst", "Get your JST", `Free at jst.doded.mil. Put your real credit number in "Your JST" below.`],
+    ["st-sophia", "Finish the Sophia courses that count", `${s.useful} more count for this plan. Do them before you enroll${plan.school === "Embry-Riddle" ? " (Embry-Riddle only accepts Sophia finished before you enroll)" : ""}.`],
     ["st-eval", `Ask ${plan.school} for a free unofficial evaluation`, "Send your JST and Sophia transcript. Their answer replaces the estimates on this page."],
     ["st-fafsa", "File the FAFSA", "Opens Oct 1 at studentaid.gov. Takes about 30 minutes."],
     ["st-apply", `Apply to ${plan.school} and to scholarships`, "See the Money tab for what's open and when it's due."],
@@ -603,7 +809,6 @@ function renderPlan() {
   }).join("");
 
   $("jst").value = state.jst;
-  $("years").value = state.years;
 }
 
 function renderSophia() {
@@ -657,10 +862,10 @@ function renderCompare() {
   $("cmpTable").innerHTML = rows.map(({ p, s }) => `
     <div class="item pick ${p.id === state.plan ? "current" : ""}" data-plan="${p.id}">
       <div class="main">
-        <div class="school">${esc(p.school)} · ${"★".repeat(p.fit)}<span style="opacity:.3">${"★".repeat(3 - p.fit)}</span> cloud jobs</div>
+        <div class="school">${esc(p.school)} · ${esc(p.level)} · ${"★".repeat(p.fit)}<span style="opacity:.3">${"★".repeat(3 - p.fit)}</span> cloud jobs</div>
         <div class="name">${esc(p.name)} <span class="pct">${pct(s.done, p.total)}%</span></div>
         <div class="bar" style="margin-top:6px;height:7px"><div style="width:${100 * s.done / p.total}%"></div><div style="width:${100 * (s.max - s.done) / p.total}%"></div></div>
-        <div class="sub">${Math.round(100 * s.done / p.total)}% knocked off (up to ${Math.round(100 * s.max / p.total)}% with more Sophia) · ${s.left} ${unit(p)} left</div>
+        <div class="sub">${pct(s.done, p.total)}% done now → ${pct(s.planned, p.total)}% after your Sophia plan · ${s.classesLeft} classes left</div>
         <div class="sub" style="margin-top:4px"><b>Sophia to take:</b> ${(() => {
           const list = coursesToTake(p);
           if (!list.length) return "none left";
@@ -668,7 +873,7 @@ function renderCompare() {
           return names.join(", ") + (list.length > 4 ? ` +${list.length - 4} more` : "");
         })()}</div>
       </div>
-      <div class="right"><b style="font-size:1.05rem">${fmt(s.pay)}</b><div class="muted">you pay</div></div>
+      <div class="right"><b style="font-size:1.05rem">${fmt(s.pay)}</b><div class="muted">you pay</div><div style="margin-top:4px"><b>${dur(s.months)}</b></div><div class="muted">to finish</div></div>
     </div>`).join("");
 }
 
@@ -678,12 +883,13 @@ function wonTotal() {
 
 function renderMoney() {
   const plan = planById(state.plan), s = planStats(plan);
-  const won = wonTotal(), pell = (+state.pell || 0) * state.years;
+  const won = wonTotal(), pell = (+state.pell || 0) * s.taYears;
   const pay = Math.max(0, s.pay - won - pell);
   $("costBox").innerHTML = `
-    <div class="item"><div class="main">Tuition for what's left (${esc(s.pace)})</div><div class="right"><b>${fmt(s.cost)}</b></div></div>
-    <div class="item"><div class="main">Tuition Assistance (${fmt(TA_PER_YEAR)}/yr × ${state.years})</div><div class="right" style="color:var(--good)">−${fmt(s.ta)}</div></div>
-    <div class="item"><div class="main">Pell Grant (${fmt(+state.pell || 0)}/yr × ${state.years})</div><div class="right" style="color:var(--good)">−${fmt(pell)}</div></div>
+    <div class="item"><div class="main">Tuition for what's left (${s.classesLeft} classes over ${dur(s.schoolMonths)})</div><div class="right"><b>${fmt(s.cost)}</b></div></div>
+    ${s.sophiaCost ? `<div class="item"><div class="main">Sophia ($99 × ${s.sophiaMonths} months)</div><div class="right"><b>${fmt(s.sophiaCost)}</b></div></div>` : ""}
+    <div class="item"><div class="main">Tuition Assistance (${fmt(TA_PER_YEAR)}/yr × ${s.taYears} yr)</div><div class="right" style="color:var(--good)">−${fmt(s.ta)}</div></div>
+    <div class="item"><div class="main">Pell Grant (${fmt(+state.pell || 0)}/yr × ${s.taYears} yr)</div><div class="right" style="color:var(--good)">−${fmt(pell)}</div></div>
     <div class="item"><div class="main">Scholarships marked "Won"</div><div class="right" style="color:var(--good)">−${fmt(won)}</div></div>
     <div class="item"><div class="main"><b>You pay</b></div><div class="right" style="font-size:1.2rem"><b>${fmt(pay)}</b></div></div>
     ${s.pay - won - pell < 0 ? `<p class="small muted">Aid past the cost of school usually isn't paid out as cash for tuition, but Pell above tuition can come to you as a refund for living costs (taxable).</p>` : ""}`;
@@ -728,7 +934,8 @@ document.querySelector("nav").onclick = e => {
 };
 $("planSelect").onchange = e => { state.plan = e.target.value; renderAll(); };
 $("jst").oninput = e => { state.jst = Math.max(0, +e.target.value || 0); renderAll(); $("jst").focus(); };
-$("years").onchange = e => { state.years = +e.target.value; renderAll(); };
+["moreSophia", "sophiaPace", "schoolPace"].forEach(id =>
+  $(id).oninput = e => { state[id] = +e.target.value; renderAll(); });
 $("pell").oninput = e => { state.pell = Math.max(0, +e.target.value || 0); renderAll(); $("pell").focus(); };
 
 document.addEventListener("change", e => {
@@ -746,7 +953,8 @@ document.addEventListener("change", e => {
 });
 
 document.addEventListener("click", e => {
-  const f = e.target.dataset.filter, s = e.target.dataset.sort;
+  const f = e.target.dataset.filter, s = e.target.dataset.sort, pr = e.target.dataset.preset;
+  if (pr) { [state.moreSophia, state.sophiaPace, state.schoolPace] = PRESETS[pr]; renderAll(); return; }
   const row = e.target.closest("[data-plan]");
   if (f) { state.filter = f; renderAll(); }
   else if (s) { state.sort = s; renderAll(); }
